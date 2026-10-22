@@ -53,4 +53,7 @@ group :development, :test do
 
   # RSpec for testing (replaces Rails' default Minitest, which was skipped via --skip-test)
   gem "rspec-rails"
+
+  # Loads local .env for development secrets (DB credentials, etc.) — never committed, see .gitignore
+  gem "dotenv-rails"
 end
