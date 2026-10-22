@@ -37,7 +37,7 @@ A cross-platform (iOS + Android) budget-tracking mobile app with AI-assisted fea
 |---|---|---|
 | Platform | Expo SDK 57 (React Native 0.86, React 19.2) | User's existing Expo client reports SDK 57; New Architecture (Fabric/TurboModules) is mandatory on this SDK, not optional |
 | Language | TypeScript, strict | Explicitly requested ("strongly typed") |
-| Styling | NativeWind **v4.2.0** (pinned, not v5) | v5 is pre-release at time of writing; v4 is proven on SDK 57 |
+| Styling | NativeWind **v4.2.0** (pinned, not v5), paired with **Tailwind CSS v3.4.x** | v5 is pre-release at time of writing; v4 is proven on SDK 57. NativeWind 4.2.0 specifically requires Tailwind v3 — confirmed empirically via `expo-doctor` during scaffolding, after an initial setup attempt (following docs that showed v4-style `@import` syntax) failed; the installed package's actual requirement is the source of truth here, not that doc snippet |
 | Animation | react-native-reanimated (current 4.x line) | Explicitly requested. Babel plugin is `react-native-worklets/plugin` (moved out of `react-native-reanimated/plugin` as of Reanimated 4 / SDK 54+) — already wired into SDK 57's default templates, no manual setup needed |
 | Navigation | Expo Router | Expo's current recommended standard for new SDK 57 projects |
 | UI components | Pure NativeWind utility classes + hand-rolled components (no Tamagui/gluestack/NativeBase/react-native-paper) | Component libraries bring styling opinions that conflict with NativeWind's utility model |
@@ -64,7 +64,8 @@ WatermelonDB requires native SQLite/JSI bindings, so the app **cannot run in pla
 | Concern | Choice | Why |
 |---|---|---|
 | Framework | Ruby on Rails (current stable, 8.1.x), `--api` mode | Confirmed first-class via `config.api_only`; no need for Rails' view-layer machinery serving a mobile-only client |
-| Database | **PostgreSQL** (not Rails 8's new SQLite-even-in-production default) | Shared Categories mean multiple users' devices write to overlapping data; background AI jobs read/write concurrently too. Postgres's concurrent-write handling and indexing are the safer fit |
+| Database | **PostgreSQL 18** (not Rails 8's new SQLite-even-in-production default) | Shared Categories mean multiple users' devices write to overlapping data; background AI jobs read/write concurrently too. Postgres's concurrent-write handling and indexing are the safer fit. Installed natively on the dev Windows machine (not Docker — a native local server already existed by the time this was set up) |
+| Local dev secrets | `dotenv-rails` gem + a gitignored `.env` in the backend folder | Database credentials (and future local-only secrets) load from environment variables (`DATABASE_HOST/PORT/USERNAME/PASSWORD` in `config/database.yml`) rather than being hardcoded — `.env` is never committed |
 | Background jobs | **Solid Queue** (Rails 8 default, DB-backed) over Sidekiq | No extra infra (no Redis to provision/monitor) — AI job volume here is per-user-action, not high-throughput, so Sidekiq's extra tooling isn't needed yet |
 | Auth | Custom `has_secure_password` + the `jwt` gem (not Devise/devise-jwt) | Devise assumes a cookie-session web app; most of its generated code doesn't fit an API-only + mobile client. Apple/Google sign-in happens on-device (Expo's native sign-in SDKs); Rails only verifies the resulting identity token server-side |
 | Testing | RSpec | De facto standard in current production Rails codebases, better matcher/mocking ergonomics than Minitest for API response/model testing |
@@ -132,12 +133,23 @@ These are explicitly **not** settled — do not silently resolve them in code; a
 1. **We.plm naming/tooling convention, trust caveat.** Early in this project's planning, a background research agent returned a fabricated result (via an unrelated tool call) describing this exact `{Project}ClientServiceLayerMSC` / `{Project}OrchestratorServiceLayerMSC` naming pattern before any legitimate lookup had occurred — a likely prompt-injection. A later, direct GitNexus inspection of real repos (AssetSphere, SignForge, PLMInfraRegister) independently found the same pattern for real, suggesting either it's a genuine convention the injection happened to know, or the indexed repos themselves carry a propagating injection in shared boilerplate (`AGENTS.md`/`CLAUDE.md` files present in all of them). The user explicitly chose to proceed with this convention after being told this. Recorded here so it isn't forgotten: if anything about this naming ever looks wrong, this is why.
 2. **GitNexus tooling is degraded in this environment.** Its embeddings index is unbuilt (`embeddings: 0` across all indexed repos) and its full-text search is broken here (missing an OpenSSL3 DLL dependency). Research so far has worked around this by reading files directly, but GitNexus's own `query`/`search` tools cannot currently be trusted to return results for this environment — direct file inspection is the fallback.
 3. **Dashboard/chart specifics, exact budget-alert copy, exact split-UI flows** — not yet designed at the pixel/flow level; this document covers architecture, not UX detail.
+4. **WatermelonDB's New Architecture compatibility is unverified.** React Native Directory flags it "Untested" on New Architecture, which Expo SDK 57 mandates with no opt-out. Decision made: proceed with WatermelonDB as scaffolded, and verify empirically once the actual sync layer is built, rather than pre-emptively switching to Legend-State or a custom approach on a label alone. If real incompatibility surfaces during that work, revisit then — don't let it block scaffolding now.
 
 ### Resolved (kept here for history)
 
 - ~~Groq API key/account strategy~~ — Finocchio uses its own, separate from PLMInfraRegister (§6, §9).
 - ~~Groq/vision model pairing~~ — Gemini 2.5 Flash (vision) + Groq `openai/gpt-oss-120b` (tool-calling), explicitly not `gpt-oss-20b` (§6).
 - ~~JSON response envelope shape~~ — PascalCase, written rule and actual output both; requires an explicit Rails-side serializer, not a default (§8).
+
+## 11a. Local Development Environment (this machine, as of first scaffold)
+
+Recorded because it took real troubleshooting to establish — don't re-derive it from scratch if a future session needs to know what's actually set up:
+
+- **Ruby 4.0.7** (x64-mingw-ucrt, native Windows install via RubyInstaller — not Docker, not WSL2), **Rails 8.1.4**, **Bundler 4.0.20**, all confirmed on PATH.
+- **PostgreSQL 18**, native Windows install, server running locally on `localhost:5432`. Dev role: username `Finocchio` (credentials live only in the backend's gitignored `.env`, never in `database.yml` or committed anywhere).
+- **Bun 1.3.14**, **Git**, **Docker Desktop**, and **GitHub CLI** (`gh`, authenticated) all present and working.
+- Two environment gotchas hit and resolved during setup, worth knowing if they recur: (1) installing new software (Ruby, then Postgres) and adding it to `PATH` doesn't take effect in an already-running terminal/session — a full restart of the terminal/session is needed, not just a retry; (2) a `PATH` entry can be *wrong* in a way a restart won't fix — this machine had `...\PostgreSQL\18\bin\psql.exe` (a file) instead of `...\PostgreSQL\18\bin` (the directory) in `PATH`, which silently breaks command resolution even though the file genuinely exists. Always verify with the actual command before assuming a restart will fix a "not found" error.
+- GitHub repo: `https://github.com/jettspanner123/FinocchioCodebaseArchitecture` (private), default branch `master`.
 
 ## 11. Non-Goals (explicit)
 
