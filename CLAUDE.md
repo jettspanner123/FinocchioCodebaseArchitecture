@@ -35,6 +35,12 @@ Example: `Added: Initialize Project Context And Architecture Docs | Git Reposito
 
 Default branch is `master` (explicit owner choice — do not rename to `main`).
 
+## Frontend coding rules — strict, non-negotiable
+
+Every line of code in `FinocchioClientServiceLayerMSC/` must strictly follow `FinocchioClientServiceLayerMSC/CODING-RULES.md` — folder structure, file naming, class-based/singleton patterns, no loose functions, constants-file rules, all of it. Read that file before writing or proposing any frontend file. It is the project's own copy of the same structure/style used in AssetSphere, SignForge, and PLMInfraRegister (owner's explicit instruction: match those three exactly, not just "similar"). If anything in `CODING-RULES.md` is ambiguous for a specific case, that is exactly the kind of thing to stop and ask about — per this file's "ask, don't assume" rule above, which applies with extra force here: the owner has explicitly reiterated "you will ask me everything" specifically in the context of this coding-rules file.
+
+There is currently no equivalent strict coding-rules file for the Rails backend — backend code follows `ARCHITECTURE.md`'s stack decisions and ordinary Rails conventions unless/until the owner provides one.
+
 ## What's deliberately not decided yet
 
 `ARCHITECTURE.md` §9–10 lists infrastructure the owner wants deferred on purpose (hosting provisioning, Appwrite storage integration, CI/CD) and items still genuinely open (the trust caveat on the we.plm naming convention, GitNexus's degraded tooling in this environment, pixel/flow-level UX detail). Don't provision, integrate, or silently resolve any of these — flag them back to the owner when work would otherwise require touching them.
