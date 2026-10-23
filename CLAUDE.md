@@ -39,7 +39,9 @@ Default branch is `master` (explicit owner choice — do not rename to `main`).
 
 Every line of code in `FinocchioClientServiceLayerMSC/` must strictly follow `FinocchioClientServiceLayerMSC/CODING-RULES.md` — folder structure, file naming, class-based/singleton patterns, no loose functions, constants-file rules, all of it. Read that file before writing or proposing any frontend file. It is the project's own copy of the same structure/style used in AssetSphere, SignForge, and PLMInfraRegister (owner's explicit instruction: match those three exactly, not just "similar"). If anything in `CODING-RULES.md` is ambiguous for a specific case, that is exactly the kind of thing to stop and ask about — per this file's "ask, don't assume" rule above, which applies with extra force here: the owner has explicitly reiterated "you will ask me everything" specifically in the context of this coding-rules file.
 
-There is currently no equivalent strict coding-rules file for the Rails backend — backend code follows `ARCHITECTURE.md`'s stack decisions and ordinary Rails conventions unless/until the owner provides one.
+## Backend coding rules — strict, non-negotiable
+
+Every line of code in `FinocchioOrchestratorServiceLayerMSC/` must strictly follow `FinocchioOrchestratorServiceLayerMSC/CODING-RULES.md` — its own independent convention, not a mirror of the frontend's. Covers: the `Features::{Name}::...` namespacing (and the Zeitwerk config required to make it real, not silently collapsed), the global-vs-feature-wise folder split, the `*Model`/`*Service`/`*Controller`/`*Utility`/`*Helper`/`*Constant`/`*Configuration` suffix rules (baked into both file and class name, never stripped), and the `FN_{SingularPascalCaseModelName}TBL` database table naming convention (requires an explicit `self.table_name` override on every model). Read it before writing or proposing any backend file. Same "ask, don't assume" force as the frontend rule above — ask before creating any file, folder, class, or constant, every name, no exceptions.
 
 ## What's deliberately not decided yet
 
