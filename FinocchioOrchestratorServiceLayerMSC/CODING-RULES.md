@@ -18,10 +18,10 @@ Finocchio's backend is Ruby on Rails. This is its own, independent convention �
 ```
 app/Features/{FeatureName}/
   {FeatureName}Controller.rb              → Features::{FeatureName}::{FeatureName}Controller
-  Services/{name}_service.rb              → Features::{FeatureName}::Services::{Name}Service
-  Models/{name}_model.rb                  → Features::{FeatureName}::Models::{Name}Model
-  Constants/{name}_constant.rb            → Features::{FeatureName}::Constants::{Name}Constant
-  Configuration/{name}_configuration.rb   → Features::{FeatureName}::Configuration::{Name}Configuration (only if a feature genuinely needs one)
+  Services/{Name}Service.rb               → Features::{FeatureName}::Services::{Name}Service
+  Models/{Name}Model.rb                   → Features::{FeatureName}::Models::{Name}Model
+  Constants/{Name}Constant.rb             → Features::{FeatureName}::Constants::{Name}Constant
+  Configuration/{Name}Configuration.rb    → Features::{FeatureName}::Configuration::{Name}Configuration (only if a feature genuinely needs one)
 ```
 
 A model/service/constant that only one feature needs lives inside that feature's own folder, fully namespaced under `Features::{FeatureName}::...`.
@@ -31,11 +31,11 @@ A model/service/constant that only one feature needs lives inside that feature's
 The moment something is needed by more than one feature, it's promoted out of `Features/{X}/` into the matching global folder — same "promote once a second feature needs it" rule as the frontend's `Types/` folder.
 
 ```
-app/Models/{name}_model.rb       → {Name}Model        (no namespace prefix)
-app/Services/{name}_service.rb   → {Name}Service
-app/Helpers/{name}_helper.rb     → {Name}Helper
-app/Utilities/{name}_utility.rb  → {Name}Utility
-app/Constants/{name}_constant.rb → {Name}Constant
+app/Models/{Name}Model.rb       → {Name}Model        (no namespace prefix)
+app/Services/{Name}Service.rb   → {Name}Service
+app/Helpers/{Name}Helper.rb     → {Name}Helper
+app/Utilities/{Name}Utility.rb  → {Name}Utility
+app/Constants/{Name}Constant.rb → {Name}Constant
 ```
 
 `app/Models/` is a deliberate rename of Rails' own default `app/models/` (capitalized for consistency with the other global folders) — accepted even though it means `rails generate model` would need its output manually moved/recased, since Rails doesn't itself care about the directory's casing for autoloading purposes. `app/controllers/`, `app/jobs/`, `app/mailers/`, `app/channels/`, `app/views/` stay as Rails' own lowercase defaults — untouched, since nothing in this project's convention needs to claim them.
@@ -55,30 +55,45 @@ Rails.autoloaders.main.push_dir(Rails.root.join("app/Features"), namespace: Feat
 
 This is standard, documented Zeitwerk/Rails configuration for isolating a namespace — not a workaround.
 
-Acronyms must stay fully capitalized inside PascalCase names (`JSONWebTokenService`, not `JsonWebTokenService`). Register each one Rails' standard way, in `config/initializers/inflections.rb`:
+### File names are PascalCase, matching the class name exactly
+
+Every file we author (`UserModel.rb`, `JSONWebTokenService.rb`, `AuthenticationController.rb`) is named identically to the class it defines — no snake_case filenames in this project's own code.
+
+**This needs a custom inflector, not just acronym registration.** Zeitwerk's default inflector uses Ruby's `String#capitalize`, which doesn't just capitalize the first letter — it *lowercases everything after it* (`"JSONWebTokenService".capitalize` → `"Jsonwebtokenservice"`). Left on defaults, Zeitwerk would mangle any PascalCase filename with internal capitals. The fix is a small custom inflector that passes an already-PascalCase basename through unchanged, and only falls back to default snake_case-to-CamelCase behavior for anything that isn't (i.e. Rails' own generated files, which stay untouched — see below):
 
 ```ruby
-ActiveSupport::Inflector.inflections(:en) do |inflect|
-  inflect.acronym "JSON"
-  inflect.acronym "JWT"
+# app/lib/finocchio_inflector.rb
+class FinocchioInflector < Zeitwerk::Inflector
+  def camelize(basename, abspath)
+    return basename if basename =~ /\A[A-Z]/
+
+    super
+  end
 end
 ```
 
-Add new acronyms here as they come up — ask before adding one, same as any other naming decision.
+```ruby
+# config/initializers/finocchio_inflector.rb
+Rails.autoloaders.main.inflector = FinocchioInflector.new
+```
+
+With this in place, acronym registration (`inflect.acronym "JSON"`) becomes unnecessary for *our own* files — since the filename already spells out `JSONWebTokenService` exactly, there's no snake_case-to-CamelCase inflection step happening for it to get wrong. Acronym registration in `config/initializers/inflections.rb` would only still matter for any snake_case file Rails itself generates and we don't rename (see below) — add one there only if that situation actually comes up.
+
+**Rails' own generated files are left exactly as Rails made them** — `app/models/application_record.rb` (`ApplicationRecord`), `app/controllers/application_controller.rb` (`ApplicationController`), and anything else `rails new`/`rails generate` scaffolds before we touch it. These aren't renamed to PascalCase filenames; they're framework-owned, not part of this project's own authored code, and leaving them alone avoids any friction with future Rails upgrades or generator expectations.
 
 ## Naming Suffixes
 
 | Category | Class suffix | File suffix |
 |---|---|---|
-| Model | `*Model` | `*_model.rb` |
-| Service | `*Service` | `*_service.rb` |
-| Controller | `*Controller` | `*_controller.rb` |
-| Utility | `*Utility` | `*_utility.rb` |
-| Helper | `*Helper` | `*_helper.rb` |
-| Constant | `*Constant` | `*_constant.rb` |
-| Configuration | `*Configuration` | `*_configuration.rb` |
+| Model | `*Model` | `*Model.rb` |
+| Service | `*Service` | `*Service.rb` |
+| Controller | `*Controller` | `*Controller.rb` |
+| Utility | `*Utility` | `*Utility.rb` |
+| Helper | `*Helper` | `*Helper.rb` |
+| Constant | `*Constant` | `*Constant.rb` |
+| Configuration | `*Configuration` | `*Configuration.rb` |
 
-The suffix is baked into both the file name and the actual class name — never stripped. E.g. `UserModel` (not `User`), file `user_model.rb`.
+The suffix is baked into both the file name and the actual class name — never stripped. E.g. `UserModel`, file `UserModel.rb`.
 
 ## Database Tables
 
