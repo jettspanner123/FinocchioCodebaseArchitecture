@@ -2,7 +2,7 @@
   "name": "@finocchio/server",
   "private": true,
   "scripts": {
-    "dev": "bin/rails server",
+    "dev": "ruby bin/rails server",
     "test": "bundle exec rspec"
   }
 }
