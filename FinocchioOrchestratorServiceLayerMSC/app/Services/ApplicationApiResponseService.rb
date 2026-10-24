@@ -9,7 +9,7 @@ class ApplicationApiResponseService
   def success_envelope(data: {}, message: "Success", status_code: 200)
     {
       Message: message,
-      Success: true,
+      Success: successful?(status_code),
       StatusCode: status_code
     }.merge(pascalize(data))
   end
@@ -17,13 +17,20 @@ class ApplicationApiResponseService
   def error_envelope(message: "Error", errors: {}, status_code: 500)
     {
       Message: message,
-      Success: false,
+      Success: successful?(status_code),
       StatusCode: status_code,
       Errors: pascalize(errors)
     }
   end
 
   private
+
+  # `Success` always reflects the HTTP-level outcome, never hardcoded per
+  # method -- a 503 Unhealthy report via success_envelope must read
+  # Success: false, the same as any other >=400 response.
+  def successful?(status_code)
+    status_code.to_i < 400
+  end
 
   def pascalize(value)
     return value unless value.is_a?(Hash)
