@@ -31,6 +31,11 @@ threads threads_count, threads_count
 # Specifies the `port` that Puma will listen on to receive requests; default is 3000.
 port ENV.fetch("PORT", 3000)
 
+# Bind to all interfaces (not just 127.0.0.1) in development, so a physical
+# phone on the same Wi-Fi network can reach the backend -- Puma's default
+# loopback-only binding would otherwise silently refuse LAN connections.
+bind "tcp://0.0.0.0:#{ENV.fetch('PORT', 3000)}" if ENV.fetch("RAILS_ENV", "development") == "development"
+
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart
 

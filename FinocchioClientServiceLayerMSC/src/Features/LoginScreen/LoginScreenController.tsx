@@ -25,20 +25,28 @@ export default function LoginScreenController(): React.JSX.Element {
   });
 
   return (
-    <View>
-      <Text>{LoginScreenCON.SCREEN_TITLE}</Text>
+    <View className="flex-1 justify-center items-center bg-white px-6">
+      <View className="w-full max-w-sm">
+        <Text className="text-2xl font-bold mb-6 text-center">{LoginScreenCON.SCREEN_TITLE}</Text>
 
-      <LoginScreenFormStaticComponent form={form} />
+        <LoginScreenFormStaticComponent form={form} />
 
-      {loginMutation.isError ? <Text>{LoginScreenService.current.extractErrorMessage(loginMutation.error)}</Text> : null}
+        {loginMutation.isError ? (
+          <Text className="text-red-500 text-sm mb-2">{LoginScreenService.current.extractErrorMessage(loginMutation.error)}</Text>
+        ) : null}
 
-      <Pressable onPress={onSubmit} disabled={loginMutation.isPending}>
-        <Text>{loginMutation.isPending ? "Logging in..." : "Log In"}</Text>
-      </Pressable>
+        <Pressable
+          className="w-full items-center rounded-md bg-blue-600 px-4 py-3 mt-2 disabled:opacity-50"
+          onPress={onSubmit}
+          disabled={loginMutation.isPending}
+        >
+          <Text className="text-white font-semibold">{loginMutation.isPending ? "Logging in..." : "Log In"}</Text>
+        </Pressable>
 
-      <Pressable onPress={() => router.push(ApplicationRouteCON.SIGN_UP_SCREEN_ROUTE)}>
-        <Text>Don&apos;t have an account? Sign up</Text>
-      </Pressable>
+        <Pressable className="mt-4 items-center" onPress={() => router.push(ApplicationRouteCON.SIGN_UP_SCREEN_ROUTE)}>
+          <Text className="text-blue-600">Don&apos;t have an account? Sign up</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }

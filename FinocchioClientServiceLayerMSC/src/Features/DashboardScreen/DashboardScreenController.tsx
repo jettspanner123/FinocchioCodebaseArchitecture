@@ -18,14 +18,20 @@ export default function DashboardScreenController(): React.JSX.Element {
   };
 
   return (
-    <View>
-      <Text>
-        {DashboardScreenCON.LOGGED_IN_AS_PREFIX} {user?.Email}
-      </Text>
+    <View className="flex-1 justify-center items-center bg-white px-6">
+      <View className="w-full max-w-sm items-center">
+        <Text className="text-lg mb-6 text-center">
+          {DashboardScreenCON.LOGGED_IN_AS_PREFIX} {user?.Email}
+        </Text>
 
-      <Pressable onPress={onLogout} disabled={logoutMutation.isPending}>
-        <Text>{logoutMutation.isPending ? "Logging out..." : "Log Out"}</Text>
-      </Pressable>
+        <Pressable
+          className="w-full items-center rounded-md bg-blue-600 px-4 py-3 disabled:opacity-50"
+          onPress={onLogout}
+          disabled={logoutMutation.isPending}
+        >
+          <Text className="text-white font-semibold">{logoutMutation.isPending ? "Logging out..." : "Log Out"}</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
