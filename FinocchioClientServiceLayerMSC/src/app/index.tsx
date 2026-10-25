@@ -1,11 +1,7 @@
-import { StatusBar } from 'expo-status-bar';
-import { Text, View } from 'react-native';
+import React from "react";
 
-export default function Index() {
-  return (
-    <View className="flex-1 items-center justify-center bg-white dark:bg-black">
-      <Text className="text-black dark:text-white">Finocchio</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+import RootViewController from "@/RootViewController";
+
+export default function Index(): React.JSX.Element {
+  return <RootViewController />;
 }
