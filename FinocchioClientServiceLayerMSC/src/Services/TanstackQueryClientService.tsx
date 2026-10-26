@@ -26,6 +26,12 @@ class AuthenticationMutations {
       mutationFn: () => AuthenticationService.current.logout(),
     });
   }
+
+  public googleSignInMutation(): UseMutationResult<AuthenticatedSessionType, Error, string> {
+    return useMutation({
+      mutationFn: (idToken: string) => AuthenticationService.current.googleSignIn(idToken),
+    });
+  }
 }
 
 // Namespaces every domain's TanStack Query mutations/queries behind one

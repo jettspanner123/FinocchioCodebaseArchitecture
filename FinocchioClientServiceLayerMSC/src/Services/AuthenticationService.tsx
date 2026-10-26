@@ -26,6 +26,14 @@ export default class AuthenticationService {
     return this.persistSession(response.data);
   }
 
+  public async googleSignIn(idToken: string): Promise<AuthenticatedSessionType> {
+    const response = await ApplicationApiClientService.current.instance.post(ApplicationApiCON.AUTHENTICATION_GOOGLE_SIGN_IN_PATH, {
+      id_token: idToken,
+    });
+
+    return this.persistSession(response.data);
+  }
+
   public async logout(): Promise<void> {
     const refreshToken = await ApplicationSecureStorageService.current.getItem(
       ApplicationSecureStorageCON.REFRESH_TOKEN_STORAGE_KEY,

@@ -26,7 +26,13 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.243259728467-0spvqedumppc0ga6mr6q6ravbsupl9a8"
+        }
+      ]
     ]
   }
 }
