@@ -1,7 +1,11 @@
 class UserModel < ApplicationRecord
   self.table_name = "FN_UserTBL"
 
-  has_secure_password
+  # validations: false because a Google sign-up never sets a password -- the
+  # default presence validation has_secure_password adds would reject it.
+  # password_required_unless_google_sign_up below replaces that validation,
+  # scoped to accounts that aren't Google-linked.
+  has_secure_password validations: false
 
   has_many :refresh_tokens,
            class_name: "Features::Authentication::Models::RefreshTokenModel",
@@ -13,7 +17,13 @@ class UserModel < ApplicationRecord
   validates :email, presence: true,
                      uniqueness: { case_sensitive: false },
                      format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :google_uid, uniqueness: true, allow_nil: true
+  validates :password, presence: true, on: :create, if: -> { google_uid.blank? }
   validate :password_meets_policy, if: -> { password.present? }
+
+  def google_linked?
+    google_uid.present?
+  end
 
   private
 

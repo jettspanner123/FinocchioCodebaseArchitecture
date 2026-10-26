@@ -103,6 +103,48 @@ module Features
         end
       end
 
+      def google_sign_in
+        begin
+          payload = Features::Authentication::Services::GoogleIdTokenVerifierService.current.verify(params[:id_token])
+        rescue StandardError => e
+          Rails.logger.error("[AuthenticationController#google_sign_in] #{e.class}: #{e.message}")
+          render(
+            json: ApplicationApiResponseService.current.error_envelope(
+              message: "An unexpected error occurred during Google sign-in.",
+              status_code: 500
+            ),
+            status: 500
+          )
+        else
+          if payload.nil?
+            render(
+              json: ApplicationApiResponseService.current.error_envelope(
+                message: "Invalid Google sign-in token.",
+                status_code: 401
+              ),
+              status: 401
+            )
+          else
+            user = find_or_create_google_user(payload)
+
+            if user.persisted? && user.errors.empty?
+              render_authenticated_session(user, message: "Signed in with Google successfully.", status_code: 200)
+            else
+              render(
+                json: ApplicationApiResponseService.current.error_envelope(
+                  message: "Validation failed.",
+                  errors: user.errors.to_hash,
+                  status_code: 422
+                ),
+                status: 422
+              )
+            end
+          end
+        ensure
+          # No cleanup required for this action.
+        end
+      end
+
       def logout
         begin
           Features::Authentication::Services::RefreshTokenService.current.revoke(params[:refresh_token])
@@ -129,6 +171,23 @@ module Features
       end
 
       private
+
+      # Account linking: a Google sign-in matching an existing google_uid
+      # returns that user; otherwise it matches by email (Google has already
+      # verified that email belongs to whoever is signing in) and links
+      # google_uid onto that account; otherwise it creates a new account.
+      def find_or_create_google_user(payload)
+        email = payload["email"].to_s.downcase.strip
+        google_uid = payload["sub"]
+
+        existing_by_uid = UserModel.find_by(google_uid: google_uid)
+        return existing_by_uid if existing_by_uid
+
+        user = UserModel.find_by(email: email) || UserModel.new(email: email)
+        user.google_uid = google_uid
+        user.save
+        user
+      end
 
       def render_authenticated_session(user, message:, status_code:)
         raw_refresh_token, = Features::Authentication::Services::RefreshTokenService.current.issue(user)
