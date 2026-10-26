@@ -27,7 +27,7 @@ default: &default
 
 development:
   <<: *default
-  database: finocchio_orchestrator_service_layer_msc_development
+  database: FinocchioApplicationDatabase
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.
@@ -61,7 +61,7 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: finocchio_orchestrator_service_layer_msc_test
+  database: FinocchioApplicationDatabaseTest
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -92,18 +92,18 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: finocchio_orchestrator_service_layer_msc_production
+    database: FinocchioApplicationDatabaseProduction
     username: finocchio_orchestrator_service_layer_msc
     password: <%= ENV["FINOCCHIO_ORCHESTRATOR_SERVICE_LAYER_MSC_DATABASE_PASSWORD"] %>
   cache:
     <<: *primary_production
-    database: finocchio_orchestrator_service_layer_msc_production_cache
+    database: FinocchioApplicationDatabaseCache
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
-    database: finocchio_orchestrator_service_layer_msc_production_queue
+    database: FinocchioApplicationDatabaseQueue
     migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
-    database: finocchio_orchestrator_service_layer_msc_production_cable
+    database: FinocchioApplicationDatabaseCable
     migrations_paths: db/cable_migrate
