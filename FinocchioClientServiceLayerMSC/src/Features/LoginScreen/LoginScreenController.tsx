@@ -37,7 +37,7 @@ export default function LoginScreenController(): React.JSX.Element {
 
         <Pressable
           className="w-full items-center rounded-md bg-blue-600 px-4 py-3 mt-2 disabled:opacity-50"
-          onPress={onSubmit}
+          onPress={() => onSubmit()}
           disabled={loginMutation.isPending}
         >
           <Text className="text-white font-semibold">{loginMutation.isPending ? "Logging in..." : "Log In"}</Text>
