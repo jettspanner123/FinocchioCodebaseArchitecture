@@ -4,6 +4,7 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@ai-sdk/react": "^4.0.152",
+    "@expo/vector-icons": "^15.0.2",
     "@hookform/resolvers": "^6.0.0",
     "@nozbe/watermelondb": "^0.28.0",
     "@react-native-google-signin/google-signin": "^16.1.5",

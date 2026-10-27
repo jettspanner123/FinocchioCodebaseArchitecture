@@ -1,3 +1,4 @@
 export default class DashboardScreenCON {
-  public static readonly LOGGED_IN_AS_PREFIX: string = "Logged in as";
+  public static readonly HEADER_LABEL: string = "Expenses";
+  public static readonly PERIOD_LABEL: string = "Week";
 }
