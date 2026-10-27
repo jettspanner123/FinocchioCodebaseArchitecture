@@ -47,8 +47,8 @@ export default function DashboardScreenController(): React.JSX.Element {
           {DashboardScreenCON.PERIOD_LABEL}
         </Text>
 
-        {transactions.map((transaction) => (
-          <DashboardScreenTransactionCardStaticComponent key={transaction.id} transaction={transaction} />
+        {transactions.map((transaction, index) => (
+          <DashboardScreenTransactionCardStaticComponent key={transaction.id} transaction={transaction} isFirst={index === 0} />
         ))}
       </ScrollView>
     </View>
