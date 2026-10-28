@@ -7,6 +7,7 @@ import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
 import DashboardScreenCON from "@/Features/DashboardScreen/Constants/DashboardScreenCON";
 import type { DashboardTransactionModel } from "@/Features/DashboardScreen/Models/DashboardScreenModel";
 import DashboardScreenService from "@/Features/DashboardScreen/Services/DashboardScreenService";
+import UIFontHelper from "@/Helpers/UIFontHelper";
 
 interface DashboardScreenTransactionCardStaticComponentProps {
   transaction: DashboardTransactionModel;
@@ -85,16 +86,30 @@ export default function DashboardScreenTransactionCardStaticComponent({
           <Ionicons name={style.iconName} size={23} color={style.textColor} />
         </View>
 
-        <Text style={{ color: style.textColor, opacity: 0.7, fontSize: 12 }}>{transaction.dayLabel}</Text>
       </View>
 
       <View className="flex-row items-end justify-between">
         <View>
-          <Text style={{ color: style.textColor, opacity: 0.7, fontSize: 12 }}>{transaction.category}</Text>
-          <Text style={{ color: style.textColor, fontWeight: "600", fontSize: 16 }}>{transaction.merchantName}</Text>
+          <Text style={{ color: style.textColor, opacity: 0.7, fontSize: 20, fontFamily: UIFontHelper.current.getPirataOneFont() }}>
+            {transaction.category}
+          </Text>
+          <Text style={{ color: style.textColor, fontWeight: "600", fontSize: 30 }}>{transaction.merchantName}</Text>
         </View>
 
-        <Text style={{ color: style.textColor, fontWeight: "600", fontSize: 16 }}>{formattedAmount}</Text>
+        <View>
+          <Text
+            style={{
+              color: style.textColor,
+              opacity: 0.7,
+              fontSize: 20,
+              textAlign: "end",
+              fontFamily: UIFontHelper.current.getPirataOneFont(),
+            }}
+          >
+            {transaction.dayLabel}
+          </Text>
+          <Text style={{ color: style.textColor, fontWeight: "600", fontSize: 30 }}>{formattedAmount}</Text>
+        </View>
       </View>
     </Animated.View>
   );

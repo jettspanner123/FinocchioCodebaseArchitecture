@@ -37,7 +37,7 @@ export default function DashboardScreenController(): React.JSX.Element {
   const stackContentHeight = stackAreaHeight + Math.max(transactions.length - 1, 0) * cardStep;
 
   return (
-    <View className="flex-1" style={{ backgroundColor: ColorFactoryCON.BACKGROUND }}>
+    <View className="flex-1" style={{ backgroundColor: ColorFactoryCON.BACKGROUND, paddingInline: 5 }}>
       <View style={{ paddingHorizontal: EdgeInsetsCON.LG, paddingTop: EdgeInsetsCON.XXL }}>
         <View className="flex-row items-center justify-between" style={{ marginBottom: EdgeInsetsCON.XL }}>
           <View className="flex-row items-center">
