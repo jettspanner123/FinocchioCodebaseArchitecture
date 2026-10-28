@@ -14,6 +14,7 @@ export interface DashboardCategoryStyleModel {
   backgroundColor: string;
   textColor: string;
   iconName: keyof typeof Ionicons.glyphMap;
+  iconBackgroundColor: string;
 }
 
 // Static mock data -- establishes the visual design now; DashboardScreenService

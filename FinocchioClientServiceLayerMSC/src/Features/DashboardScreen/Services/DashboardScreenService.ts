@@ -26,6 +26,16 @@ export default class DashboardScreenService {
   }
 
   public resolveCategoryStyle(category: DashboardTransactionCategoryType): DashboardCategoryStyleModel {
+    const base = this.resolveCategoryBaseStyle(category);
+    return {
+      ...base,
+      iconBackgroundColor: this.darkenHexColor(base.backgroundColor, DashboardScreenCON.TRANSACTION_ICON_BACKGROUND_DARKEN_AMOUNT),
+    };
+  }
+
+  private resolveCategoryBaseStyle(
+    category: DashboardTransactionCategoryType,
+  ): Omit<DashboardCategoryStyleModel, "iconBackgroundColor"> {
     switch (category) {
       case "Games":
         return { backgroundColor: ColorFactoryCON.CARD_GAMES, textColor: ColorFactoryCON.CARD_GAMES_TEXT, iconName: "game-controller" };
@@ -40,6 +50,18 @@ export default class DashboardScreenService {
       case "Food":
         return { backgroundColor: ColorFactoryCON.CARD_FOOD, textColor: ColorFactoryCON.CARD_FOOD_TEXT, iconName: "fast-food" };
     }
+  }
+
+  private darkenHexColor(hex: string, amount: number): string {
+    const sanitized = hex.replace("#", "");
+    const r = parseInt(sanitized.substring(0, 2), 16);
+    const g = parseInt(sanitized.substring(2, 4), 16);
+    const b = parseInt(sanitized.substring(4, 6), 16);
+    const toDarkenedHexChannel = (channel: number) =>
+      Math.max(0, Math.round(channel * (1 - amount)))
+        .toString(16)
+        .padStart(2, "0");
+    return `#${toDarkenedHexChannel(r)}${toDarkenedHexChannel(g)}${toDarkenedHexChannel(b)}`.toUpperCase();
   }
 
   // Rupees, matching ARCHITECTURE.md's single-currency (INR) decision -- the

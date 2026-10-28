@@ -50,4 +50,9 @@ export default class DashboardScreenCON {
   // further. Keeps scale bounded (never below roughly
   // 1 - MAX_RECEDE_DEPTH * RECEDE_SCALE_STEP) for arbitrarily long lists.
   public static readonly TRANSACTION_STACK_MAX_RECEDE_DEPTH: number = 3;
+
+  // How much darker (as a fraction) the icon's circular background is than
+  // the card's own background color -- icons sit on a darker tint of the
+  // same color instead of a plain white circle.
+  public static readonly TRANSACTION_ICON_BACKGROUND_DARKEN_AMOUNT: number = 0.12;
 }

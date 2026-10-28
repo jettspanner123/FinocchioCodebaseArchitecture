@@ -79,8 +79,11 @@ export default function DashboardScreenTransactionCardStaticComponent({
       ]}
     >
       <View className="flex-row items-center flex-1">
-        <View className="w-10 h-10 rounded-full bg-white items-center justify-center" style={{ marginRight: EdgeInsetsCON.MD }}>
-          <Ionicons name={style.iconName} size={18} color={style.backgroundColor} />
+        <View
+          className="w-10 h-10 rounded-full items-center justify-center"
+          style={{ marginRight: EdgeInsetsCON.MD, backgroundColor: style.iconBackgroundColor }}
+        >
+          <Ionicons name={style.iconName} size={18} color={style.textColor} />
         </View>
 
         <View className="flex-1">

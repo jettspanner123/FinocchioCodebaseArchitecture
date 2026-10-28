@@ -12,13 +12,18 @@ const LIGHT_PALETTE: ApplicationColorPaletteType = {
   BACKGROUND: "#F3EFFB",
   INK: "#1C1C28",
   SUBTLE_TEXT: "#8A8A99",
-  CARD_GAMES: "#F0D9F0",
+  // Exact category colors provided 2026-10-28 (replacing the earlier
+  // by-eye-estimated mockup colors). All four _TEXT entries are now the same
+  // INK value -- every card uses black text/icons per that update, kept as
+  // separate per-category keys rather than collapsing to one shared constant
+  // so a future category can still diverge without a structural change here.
+  CARD_GAMES: "#E0C4F1",
   CARD_GAMES_TEXT: "#1C1C28",
-  CARD_PRODUCTS: "#EEE896",
+  CARD_PRODUCTS: "#F4F5A8",
   CARD_PRODUCTS_TEXT: "#1C1C28",
-  CARD_ENTERTAINMENT: "#8E7CC3",
-  CARD_ENTERTAINMENT_TEXT: "#FFFFFF",
-  CARD_FOOD: "#C6DFF0",
+  CARD_ENTERTAINMENT: "#9E6CEB",
+  CARD_ENTERTAINMENT_TEXT: "#1C1C28",
+  CARD_FOOD: "#C5CDF0",
   CARD_FOOD_TEXT: "#1C1C28",
 };
 
