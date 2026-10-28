@@ -66,4 +66,21 @@ export default class DashboardScreenCON {
   public static readonly ADD_CARD_TITLE: string = "Create Category";
   public static readonly ADD_CARD_SUBTITLE: string = "Set up a personal or shared budget";
   public static readonly ADD_CARD_BACKGROUND_COLOR: string = "#1C1C28";
+
+  // Tap-to-expand "zoom" animation (see
+  // FinocchioAgentDocumentationNMSC/PRD/CATEGORY_CARD_EXPAND_PRD.md). One
+  // spring config drives every motion in the sequence (forward and reverse)
+  // via a single 0->1 expandProgress shared value -- duration-based so
+  // "dampingRatio" directly expresses "slight bounce" (1 = none, <1 = bouncy).
+  public static readonly EXPAND_SPRING_CONFIG = {
+    duration: 600,
+    dampingRatio: 0.82,
+  } as const;
+
+  // Per-element windows within expandProgress's 0->1 journey -- see PRD §4
+  // for why these are interpolation windows of one spring rather than
+  // separate timers.
+  public static readonly EXPAND_SLIDE_AWAY_END_PROGRESS: number = 0.4;
+  public static readonly EXPAND_CONTENT_FADE_END_PROGRESS: number = 0.25;
+  public static readonly EXPAND_GROWTH_START_PROGRESS: number = 0.3;
 }
