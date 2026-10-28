@@ -5,6 +5,7 @@ import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native
 
 import ColorFactoryCON from "@/Constants/ColorFactoryCON";
 import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
+import DashboardScreenAddCategoryCardStaticComponent from "@/Features/DashboardScreen/Components/static/DashboardScreenAddCategoryCardStaticComponent";
 import DashboardScreenCategoryCardStaticComponent from "@/Features/DashboardScreen/Components/static/DashboardScreenCategoryCardStaticComponent";
 import DashboardScreenCON from "@/Features/DashboardScreen/Constants/DashboardScreenCON";
 import DashboardScreenService from "@/Features/DashboardScreen/Services/DashboardScreenService";
@@ -17,7 +18,10 @@ import DashboardScreenService from "@/Features/DashboardScreen/Services/Dashboar
 // absolutely positioned and pin to the top of this region via a
 // scroll-driven Reanimated transform (see DashboardScreenCategoryCardStaticComponent);
 // contentContainerStyle's height is sized to give exactly enough scroll range
-// for the last card to reach its pin point, no more.
+// for all cards to stack cleanly.
+//
+// The black Add Category Card sits beneath the category cards at the bottom
+// of the viewport, staying pinned/stationary via counter-translation as cards scroll up.
 export default function DashboardScreenController(): React.JSX.Element {
   const categories = DashboardScreenService.current.getCategories();
   const cardStep = DashboardScreenService.current.getCategoryCardStep();
@@ -31,7 +35,12 @@ export default function DashboardScreenController(): React.JSX.Element {
   const onStackAreaLayout = (event: LayoutChangeEvent) => {
     setStackAreaHeight(event.nativeEvent.layout.height);
   };
+
   const stackContentHeight = stackAreaHeight + Math.max(categories.length - 1, 0) * cardStep;
+  const addCardTop = Math.max(
+    stackAreaHeight - DashboardScreenCON.CATEGORY_CARD_HEIGHT - EdgeInsetsCON.MD,
+    0,
+  );
 
   return (
     <View className="flex-1" style={{ backgroundColor: ColorFactoryCON.BACKGROUND, paddingInline: 5 }}>
@@ -73,11 +82,19 @@ export default function DashboardScreenController(): React.JSX.Element {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: EdgeInsetsCON.LG, height: stackContentHeight }}
         >
+          {stackAreaHeight > 0 && (
+            <DashboardScreenAddCategoryCardStaticComponent
+              scrollY={scrollY}
+              top={addCardTop}
+            />
+          )}
+
           {categories.map((category, index) => (
             <DashboardScreenCategoryCardStaticComponent
               key={category.id}
               category={category}
               index={index}
+              isLastCard={index === categories.length - 1}
               scrollY={scrollY}
             />
           ))}

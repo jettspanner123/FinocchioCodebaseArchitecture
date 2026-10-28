@@ -12,12 +12,14 @@ import UIFontHelper from "@/Helpers/UIFontHelper";
 interface DashboardScreenCategoryCardStaticComponentProps {
   category: DashboardCategoryModel;
   index: number;
+  isLastCard?: boolean;
   scrollY: SharedValue<number>;
 }
 
 export default function DashboardScreenCategoryCardStaticComponent({
   category,
   index,
+  isLastCard = false,
   scrollY,
 }: DashboardScreenCategoryCardStaticComponentProps): React.JSX.Element {
   const style = DashboardScreenService.current.resolveCategoryStyle(category);
@@ -42,7 +44,11 @@ export default function DashboardScreenCategoryCardStaticComponent({
 
   const animatedStyle = useAnimatedStyle(() => {
     const pinnedTranslateY = Math.max(scrollY.value - pinArrivalScrollY, 0);
-    const scale = interpolate(scrollY.value, scaleInputRange, scaleOutputRange, Extrapolation.CLAMP);
+    // The final card is the topmost card in the pinned deck -- it never has a
+    // card stacked on top of it, so it strictly stays locked at full size (scale 1.0).
+    const scale = isLastCard
+      ? 1
+      : interpolate(scrollY.value, scaleInputRange, scaleOutputRange, Extrapolation.CLAMP);
 
     return {
       transform: [{ translateY: pinnedTranslateY }, { scale }],

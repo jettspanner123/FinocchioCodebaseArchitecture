@@ -61,4 +61,9 @@ export default class DashboardScreenCON {
   public static readonly PROGRESS_BAR_WARNING_COLOR: string = "#F59E0B";
   public static readonly PROGRESS_BAR_DANGER_COLOR: string = "#EF4444";
   public static readonly PROGRESS_BAR_TRACK_COLOR: string = "rgba(28, 28, 40, 0.12)";
+
+  // Add Category Card
+  public static readonly ADD_CARD_TITLE: string = "Create Category";
+  public static readonly ADD_CARD_SUBTITLE: string = "Set up a personal or shared budget";
+  public static readonly ADD_CARD_BACKGROUND_COLOR: string = "#1C1C28";
 }
