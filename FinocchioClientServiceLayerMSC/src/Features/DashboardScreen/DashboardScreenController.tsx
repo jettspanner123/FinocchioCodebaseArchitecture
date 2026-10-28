@@ -5,25 +5,22 @@ import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native
 
 import ColorFactoryCON from "@/Constants/ColorFactoryCON";
 import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
-import DashboardScreenTransactionCardStaticComponent from "@/Features/DashboardScreen/Components/static/DashboardScreenTransactionCardStaticComponent";
+import DashboardScreenCategoryCardStaticComponent from "@/Features/DashboardScreen/Components/static/DashboardScreenCategoryCardStaticComponent";
 import DashboardScreenCON from "@/Features/DashboardScreen/Constants/DashboardScreenCON";
 import DashboardScreenService from "@/Features/DashboardScreen/Services/DashboardScreenService";
 
-// Logout intentionally has no home in this screen yet -- it belongs on a
-// real Settings/Profile screen that doesn't exist, not bolted onto an avatar
-// tap here as a guess. Top bar elements (avatars, +, Week dropdown) are
-// static placeholders for this design-system pass, not wired to navigation.
+// Top bar elements (avatars, +, filter dropdown) are static placeholders
+// for this design-system pass, not wired to navigation.
 //
 // Only the card area scrolls -- the header above it is outside the
 // Animated.ScrollView entirely, not just visually fixed. Cards are
 // absolutely positioned and pin to the top of this region via a
-// scroll-driven Reanimated transform (see
-// DashboardScreenTransactionCardStaticComponent); contentContainerStyle's
-// height is sized to give exactly enough scroll range for the last card to
-// reach its pin point, no more.
+// scroll-driven Reanimated transform (see DashboardScreenCategoryCardStaticComponent);
+// contentContainerStyle's height is sized to give exactly enough scroll range
+// for the last card to reach its pin point, no more.
 export default function DashboardScreenController(): React.JSX.Element {
-  const transactions = DashboardScreenService.current.getWeeklyTransactions();
-  const cardStep = DashboardScreenService.current.getTransactionCardStep();
+  const categories = DashboardScreenService.current.getCategories();
+  const cardStep = DashboardScreenService.current.getCategoryCardStep();
 
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler((event) => {
@@ -34,7 +31,7 @@ export default function DashboardScreenController(): React.JSX.Element {
   const onStackAreaLayout = (event: LayoutChangeEvent) => {
     setStackAreaHeight(event.nativeEvent.layout.height);
   };
-  const stackContentHeight = stackAreaHeight + Math.max(transactions.length - 1, 0) * cardStep;
+  const stackContentHeight = stackAreaHeight + Math.max(categories.length - 1, 0) * cardStep;
 
   return (
     <View className="flex-1" style={{ backgroundColor: ColorFactoryCON.BACKGROUND, paddingInline: 5 }}>
@@ -76,10 +73,10 @@ export default function DashboardScreenController(): React.JSX.Element {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: EdgeInsetsCON.LG, height: stackContentHeight }}
         >
-          {transactions.map((transaction, index) => (
-            <DashboardScreenTransactionCardStaticComponent
-              key={transaction.id}
-              transaction={transaction}
+          {categories.map((category, index) => (
+            <DashboardScreenCategoryCardStaticComponent
+              key={category.id}
+              category={category}
               index={index}
               scrollY={scrollY}
             />

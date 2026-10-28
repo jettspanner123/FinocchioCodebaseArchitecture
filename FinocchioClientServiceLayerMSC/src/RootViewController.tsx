@@ -10,5 +10,6 @@ import useAuthenticationStateStore from "@/Store/AuthenticationStateStore";
 export default function RootViewController(): React.JSX.Element {
   const isAuthenticated = useAuthenticationStateStore((state) => state.isAuthenticated);
 
-  return <Redirect href={isAuthenticated ? ApplicationRouteCON.DASHBOARD_SCREEN_ROUTE : ApplicationRouteCON.LOGIN_SCREEN_ROUTE} />;
+  // return <Redirect href={isAuthenticated ? ApplicationRouteCON.DASHBOARD_SCREEN_ROUTE : ApplicationRouteCON.LOGIN_SCREEN_ROUTE} />;
+  return <Redirect href={ApplicationRouteCON.DASHBOARD_SCREEN_ROUTE} />;
 }

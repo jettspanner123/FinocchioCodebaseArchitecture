@@ -1,58 +1,75 @@
-import ColorFactoryCON from "@/Constants/ColorFactoryCON";
 import DashboardScreenCON from "@/Features/DashboardScreen/Constants/DashboardScreenCON";
 import {
-  MOCK_DASHBOARD_TRANSACTIONS,
+  MOCK_DASHBOARD_CATEGORIES,
+  type DashboardCategoryModel,
   type DashboardCategoryStyleModel,
-  type DashboardTransactionCategoryType,
-  type DashboardTransactionModel,
 } from "@/Features/DashboardScreen/Models/DashboardScreenModel";
 
 export default class DashboardScreenService {
   public static current = new DashboardScreenService();
 
-  // Returns static mock data for now -- swap this method's body for a real
-  // API/WatermelonDB query once the Transactions backend feature exists;
-  // nothing else in this screen needs to change.
-  public getWeeklyTransactions(): DashboardTransactionModel[] {
-    return MOCK_DASHBOARD_TRANSACTIONS;
+  // Returns static mock category data for now -- swap this method's body for a real
+  // API/WatermelonDB query once the Categories backend/sync feature exists.
+  public getCategories(): DashboardCategoryModel[] {
+    return MOCK_DASHBOARD_CATEGORIES;
   }
 
   // Vertical distance between each card's natural (unscrolled) top position.
-  // Single source of truth shared by the controller (total scroll distance)
-  // and the card component (its own pin-arrival scroll position), so the two
-  // never drift out of sync.
-  public getTransactionCardStep(): number {
-    return DashboardScreenCON.TRANSACTION_CARD_HEIGHT + DashboardScreenCON.TRANSACTION_CARD_OVERLAP;
+  // Shared by the controller (total scroll distance) and the card component
+  // (its own pin-arrival scroll position) so the two never drift.
+  public getCategoryCardStep(): number {
+    return DashboardScreenCON.CATEGORY_CARD_HEIGHT + DashboardScreenCON.CATEGORY_CARD_OVERLAP;
   }
 
-  public resolveCategoryStyle(category: DashboardTransactionCategoryType): DashboardCategoryStyleModel {
-    const base = this.resolveCategoryBaseStyle(category);
+  public resolveCategoryStyle(category: DashboardCategoryModel): DashboardCategoryStyleModel {
     return {
-      ...base,
-      iconBackgroundColor: this.darkenHexColor(base.backgroundColor, DashboardScreenCON.TRANSACTION_ICON_BACKGROUND_DARKEN_AMOUNT),
+      backgroundColor: category.backgroundColor,
+      textColor: category.textColor,
+      iconName: category.iconName,
+      iconBackgroundColor: this.darkenHexColor(
+        category.backgroundColor,
+        DashboardScreenCON.CATEGORY_ICON_BACKGROUND_DARKEN_AMOUNT,
+      ),
     };
   }
 
-  private resolveCategoryBaseStyle(
-    category: DashboardTransactionCategoryType,
-  ): Omit<DashboardCategoryStyleModel, "iconBackgroundColor"> {
-    switch (category) {
-      case "Games":
-        return { backgroundColor: ColorFactoryCON.CARD_GAMES, textColor: ColorFactoryCON.CARD_GAMES_TEXT, iconName: "game-controller" };
-      case "Products":
-        return { backgroundColor: ColorFactoryCON.CARD_PRODUCTS, textColor: ColorFactoryCON.CARD_PRODUCTS_TEXT, iconName: "bag" };
-      case "Entertainment":
-        return {
-          backgroundColor: ColorFactoryCON.CARD_ENTERTAINMENT,
-          textColor: ColorFactoryCON.CARD_ENTERTAINMENT_TEXT,
-          iconName: "musical-notes",
-        };
-      case "Food":
-        return { backgroundColor: ColorFactoryCON.CARD_FOOD, textColor: ColorFactoryCON.CARD_FOOD_TEXT, iconName: "fast-food" };
+  public calculateProgress(
+    spentAmount: number,
+    budgetCap: number,
+  ): { percentage: number; ratio: number; remainingAmount: number; isOverCap: boolean } {
+    if (budgetCap <= 0) {
+      return { percentage: 0, ratio: 0, remainingAmount: 0, isOverCap: false };
     }
+
+    const ratio = spentAmount / budgetCap;
+    const percentage = Math.round(ratio * 100);
+    const remainingAmount = budgetCap - spentAmount;
+    const isOverCap = remainingAmount < 0;
+
+    return {
+      percentage,
+      ratio,
+      remainingAmount,
+      isOverCap,
+    };
   }
 
-  private darkenHexColor(hex: string, amount: number): string {
+  public resolveProgressBarColor(spentAmount: number, budgetCap: number): string {
+    if (budgetCap <= 0) {
+      return DashboardScreenCON.PROGRESS_BAR_DEFAULT_COLOR;
+    }
+
+    const ratio = spentAmount / budgetCap;
+    if (ratio >= DashboardScreenCON.BUDGET_ALERT_DANGER_THRESHOLD) {
+      return DashboardScreenCON.PROGRESS_BAR_DANGER_COLOR;
+    }
+    if (ratio >= DashboardScreenCON.BUDGET_ALERT_WARNING_THRESHOLD) {
+      return DashboardScreenCON.PROGRESS_BAR_WARNING_COLOR;
+    }
+    return DashboardScreenCON.PROGRESS_BAR_DEFAULT_COLOR;
+  }
+
+  public darkenHexColor(hex: string, amount: number): string {
     const sanitized = hex.replace("#", "");
     const r = parseInt(sanitized.substring(0, 2), 16);
     const g = parseInt(sanitized.substring(2, 4), 16);
@@ -64,9 +81,7 @@ export default class DashboardScreenService {
     return `#${toDarkenedHexChannel(r)}${toDarkenedHexChannel(g)}${toDarkenedHexChannel(b)}`.toUpperCase();
   }
 
-  // Rupees, matching ARCHITECTURE.md's single-currency (INR) decision -- the
-  // design mockup this screen is based on showed $ amounts, deliberately not
-  // copied literally since the currency was already decided elsewhere.
+  // Rupees, matching ARCHITECTURE.md's single-currency (INR) decision
   public formatCurrency(amount: number): string {
     const sign = amount < 0 ? "-" : "";
     return `${sign}₹${Math.abs(amount).toLocaleString("en-IN")}`;
