@@ -68,8 +68,7 @@ export default function DashboardScreenTransactionCardStaticComponent({
           borderRadius: 24,
           borderWidth: 1,
           borderColor: DashboardScreenCON.TRANSACTION_CARD_BORDER_COLOR,
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: "column",
           justifyContent: "space-between",
           backgroundColor: style.backgroundColor,
           padding: EdgeInsetsCON.LG,
@@ -78,22 +77,23 @@ export default function DashboardScreenTransactionCardStaticComponent({
         animatedStyle,
       ]}
     >
-      <View className="flex-row items-center flex-1">
+      <View className="flex-row items-start justify-between">
         <View
-          className="w-10 h-10 rounded-full items-center justify-center"
-          style={{ marginRight: EdgeInsetsCON.MD, backgroundColor: style.iconBackgroundColor }}
+          className="w-[4rem] h-[4rem] rounded-full items-center justify-center"
+          style={{ backgroundColor: style.iconBackgroundColor }}
         >
-          <Ionicons name={style.iconName} size={18} color={style.textColor} />
+          <Ionicons name={style.iconName} size={23} color={style.textColor} />
         </View>
 
-        <View className="flex-1">
+        <Text style={{ color: style.textColor, opacity: 0.7, fontSize: 12 }}>{transaction.dayLabel}</Text>
+      </View>
+
+      <View className="flex-row items-end justify-between">
+        <View>
           <Text style={{ color: style.textColor, opacity: 0.7, fontSize: 12 }}>{transaction.category}</Text>
           <Text style={{ color: style.textColor, fontWeight: "600", fontSize: 16 }}>{transaction.merchantName}</Text>
         </View>
-      </View>
 
-      <View className="items-end">
-        <Text style={{ color: style.textColor, opacity: 0.7, fontSize: 12 }}>{transaction.dayLabel}</Text>
         <Text style={{ color: style.textColor, fontWeight: "600", fontSize: 16 }}>{formattedAmount}</Text>
       </View>
     </Animated.View>

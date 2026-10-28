@@ -14,7 +14,7 @@ export default class DashboardScreenCON {
   // are absolutely positioned (so the sticky-pin scroll animation can control
   // their position via transform) -- absolute positioning can't rely on
   // intrinsic/content-driven sizing the way normal flow layout could.
-  public static readonly TRANSACTION_CARD_HEIGHT: number = 280;
+  public static readonly TRANSACTION_CARD_HEIGHT: number = 350;
 
   // Subtle depth treatment so stacked/pinned cards read as physically on top
   // of each other. Dark, low-opacity border so it stays equally subtle across
