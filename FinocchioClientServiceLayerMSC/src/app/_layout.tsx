@@ -23,15 +23,23 @@ const queryClient = new QueryClient();
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout(): React.JSX.Element | null {
-  const [fontsLoaded] = useFonts({ PirataOne_400Regular });
+  const [fontsLoaded, fontError] = useFonts({ PirataOne_400Regular });
+  // A failed font load must not brick the app forever -- treat it the same
+  // as "ready" (falling back to the system font for Pirata One's two usages)
+  // rather than returning null indefinitely with no way to recover. Logged
+  // so a real failure is still visible, not silently swallowed.
+  const isReadyToRender = fontsLoaded || !!fontError;
 
   useEffect(() => {
-    if (fontsLoaded) {
+    if (fontError) {
+      console.error('Pirata One failed to load, falling back to system font:', fontError);
+    }
+    if (isReadyToRender) {
       void SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [isReadyToRender, fontError]);
 
-  if (!fontsLoaded) {
+  if (!isReadyToRender) {
     return null;
   }
 
