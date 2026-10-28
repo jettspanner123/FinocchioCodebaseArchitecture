@@ -1,4 +1,5 @@
 import ColorFactoryCON from "@/Constants/ColorFactoryCON";
+import DashboardScreenCON from "@/Features/DashboardScreen/Constants/DashboardScreenCON";
 import {
   MOCK_DASHBOARD_TRANSACTIONS,
   type DashboardCategoryStyleModel,
@@ -14,6 +15,14 @@ export default class DashboardScreenService {
   // nothing else in this screen needs to change.
   public getWeeklyTransactions(): DashboardTransactionModel[] {
     return MOCK_DASHBOARD_TRANSACTIONS;
+  }
+
+  // Vertical distance between each card's natural (unscrolled) top position.
+  // Single source of truth shared by the controller (total scroll distance)
+  // and the card component (its own pin-arrival scroll position), so the two
+  // never drift out of sync.
+  public getTransactionCardStep(): number {
+    return DashboardScreenCON.TRANSACTION_CARD_HEIGHT + DashboardScreenCON.TRANSACTION_CARD_OVERLAP;
   }
 
   public resolveCategoryStyle(category: DashboardTransactionCategoryType): DashboardCategoryStyleModel {
