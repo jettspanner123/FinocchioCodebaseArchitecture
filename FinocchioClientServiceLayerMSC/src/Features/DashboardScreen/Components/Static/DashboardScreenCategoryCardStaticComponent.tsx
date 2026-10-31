@@ -15,7 +15,6 @@ import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
 import DashboardScreenCON from "@/Features/DashboardScreen/Constants/DashboardScreenCON";
 import type { DashboardCategoryModel, DashboardMeasuredRectModel } from "@/Features/DashboardScreen/Models/DashboardScreenModel";
 import DashboardScreenService from "@/Features/DashboardScreen/Services/DashboardScreenService";
-import UIFontHelper from "@/Helpers/UIFontHelper";
 
 interface DashboardScreenCategoryCardStaticComponentProps {
   category: DashboardCategoryModel;
@@ -57,10 +56,15 @@ export default function DashboardScreenCategoryCardStaticComponent({
   const animatedRef = useAnimatedRef<Animated.View>();
   const { height: screenHeight } = useWindowDimensions();
   const slideAwayDistance = screenHeight + DashboardScreenCON.CATEGORY_CARD_HEIGHT + EdgeInsetsCON.XXL;
+  // Resolved to plain numbers here, outside the worklets below -- Reanimated's
+  // worklet closure capture doesn't reliably serialize a live reference to an
+  // ES6 class (DashboardScreenCON) the way it does a plain number, which
+  // silently broke every one of this screen's new slide-away/fade worklets
+  // until this was fixed (confirmed via isolation testing on-device).
+  const slideAwayEndProgress = DashboardScreenCON.EXPAND_SLIDE_AWAY_END_PROGRESS;
+  const contentFadeEndProgress = DashboardScreenCON.EXPAND_CONTENT_FADE_END_PROGRESS;
 
   const style = DashboardScreenService.current.resolveCategoryStyle(category);
-  const formattedSpent = DashboardScreenService.current.formatCurrency(category.spentAmount);
-  const formattedCap = DashboardScreenService.current.formatCurrency(category.budgetCap);
   const progress = DashboardScreenService.current.calculateProgress(category.spentAmount, category.budgetCap);
   const barColor = DashboardScreenService.current.resolveProgressBarColor(category.spentAmount, category.budgetCap);
 
@@ -116,12 +120,7 @@ export default function DashboardScreenCategoryCardStaticComponent({
 
     const slideAwayTranslateY = isSelected
       ? 0
-      : interpolate(
-          expandProgress.value,
-          [0, DashboardScreenCON.EXPAND_SLIDE_AWAY_END_PROGRESS],
-          [0, slideAwayDistance],
-          Extrapolation.CLAMP,
-        );
+      : interpolate(expandProgress.value, [0, slideAwayEndProgress], [0, slideAwayDistance], Extrapolation.CLAMP);
 
     return {
       transform: [{ translateY: pinnedTranslateY + slideAwayTranslateY }, { scale: recedeScale }],
@@ -131,7 +130,7 @@ export default function DashboardScreenCategoryCardStaticComponent({
   const contentAnimatedStyle = useAnimatedStyle(() => {
     const isSelected = selectedIndex.value === index;
     const opacity = isSelected
-      ? interpolate(expandProgress.value, [0, DashboardScreenCON.EXPAND_CONTENT_FADE_END_PROGRESS], [1, 0], Extrapolation.CLAMP)
+      ? interpolate(expandProgress.value, [0, contentFadeEndProgress], [1, 0], Extrapolation.CLAMP)
       : 1;
 
     return { opacity };
@@ -159,77 +158,67 @@ export default function DashboardScreenCategoryCardStaticComponent({
       ]}
     >
       <Pressable onPress={handlePress} style={{ flex: 1 }}>
-        <Animated.View style={[{ flex: 1, justifyContent: "space-between" }, contentAnimatedStyle]}>
+        <Animated.View style={[{ flex: 1 }, contentAnimatedStyle]}>
           {/* Top Section: Category Icon, Name, and Shared/Personal badge with Member avatars */}
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center flex-1 pr-2">
-              <View
-                className="w-13 h-13 rounded-full items-center justify-center mr-3"
-                style={{
-                  width: 52,
-                  height: 52,
-                  backgroundColor: style.iconBackgroundColor,
-                }}
-              >
-                <Ionicons name={style.iconName} size={24} color={style.textColor} />
-              </View>
-              <Text
-                numberOfLines={1}
-                style={{
-                  color: style.textColor,
-                  fontSize: 26,
-                  fontFamily: UIFontHelper.current.getPirataOneFont(),
-                }}
-              >
-                {category.name}
-              </Text>
-            </View>
-
-            {category.categoryType === "Shared" ? (
-              <View className="flex-row items-center">
-                {category.members?.slice(0, 3).map((member, memberIdx) => (
+          <View
+            className="flex-row items-center justify-between pb-3"
+            style={{ borderBottomWidth: 1, borderBottomColor: "rgba(0, 0, 0, 0.07)" }}
+          >
+            <View className="flex-row items-center">
+              {category.members && category.members.length > 0 ? (
+                category.members.slice(0, 3).map((member, memberIdx) => (
                   <View
                     key={member.id}
-                    className="w-7 h-7 rounded-full items-center justify-center"
+                    className="w-14 h-14 rounded-full items-center justify-center"
                     style={{
                       backgroundColor: "#FFFFFF",
-                      marginLeft: memberIdx > 0 ? -8 : 0,
-                      borderWidth: 1.5,
+                      marginLeft: memberIdx > 0 ? -16 : 0,
+                      borderWidth: 1,
                       borderColor: style.backgroundColor,
                     }}
                   >
-                    <Text style={{ fontSize: 11, fontWeight: "700", color: style.textColor }}>
+                    <Text style={{ fontSize: 16, fontWeight: "700", color: style.textColor }}>
                       {member.avatarInitials}
                     </Text>
                   </View>
-                ))}
-                <View className="rounded-full px-2 py-0.5 ml-1.5" style={{ backgroundColor: "rgba(28, 28, 40, 0.08)" }}>
-                  <Text style={{ fontSize: 11, fontWeight: "600", color: style.textColor }}>Shared</Text>
+                ))
+              ) : (
+                <View
+                  className="w-14 h-14 rounded-full items-center justify-center"
+                  style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "rgba(0, 0, 0, 0.15)" }}
+                >
+                  <Text style={{ fontSize: 16, fontWeight: "700", color: style.textColor }}>V</Text>
                 </View>
-              </View>
-            ) : (
-              <View className="rounded-full px-2.5 py-1" style={{ backgroundColor: "rgba(28, 28, 40, 0.08)" }}>
-                <Text style={{ fontSize: 12, fontWeight: "600", color: style.textColor, opacity: 0.8 }}>Personal</Text>
-              </View>
-            )}
+              )}
+            </View>
+
+            <Pressable hitSlop={8}>
+              <Ionicons name="ellipsis-horizontal" size={20} color={style.textColor} />
+            </Pressable>
           </View>
 
           {/* Middle Section: Large Total Spent, Budget Cap, Progress Bar & Metrics */}
-          <View className="my-auto py-2">
-            <View className="flex-row items-baseline justify-between mb-2">
-              <View className="flex-row items-baseline">
-                <Text style={{ color: style.textColor, fontWeight: "700", fontSize: 32 }}>{formattedSpent}</Text>
-                <Text style={{ color: style.textColor, opacity: 0.6, fontSize: 15, marginLeft: 6 }}>spent</Text>
-              </View>
-              <Text style={{ color: style.textColor, opacity: 0.7, fontSize: 14, fontWeight: "500" }}>
-                Cap: {formattedCap}
+          <View className="py-3">
+            <View className="flex-row items-center justify-between mb-2">
+              <Text numberOfLines={1} style={{ color: style.textColor, fontWeight: "700", fontSize: 28, flexShrink: 1 }}>
+                {category.name}
               </Text>
+
+              {category.categoryType === "Shared" ? (
+                <View className="rounded-full px-2 py-0.5" style={{ backgroundColor: "rgba(28, 28, 40, 0.08)" }}>
+                  <Text style={{ fontSize: 11, fontWeight: "600", color: style.textColor }}>Shared</Text>
+                </View>
+              ) : (
+                <View className="rounded-full px-2.5 py-1" style={{ backgroundColor: "rgba(28, 28, 40, 0.08)" }}>
+                  <Text style={{ fontSize: 12, fontWeight: "600", color: style.textColor, opacity: 0.8 }}>Personal</Text>
+                </View>
+              )}
             </View>
 
             {/* Progress Bar Track */}
             <View
-              className="w-full h-3 rounded-full overflow-hidden"
-              style={{ backgroundColor: DashboardScreenCON.PROGRESS_BAR_TRACK_COLOR }}
+              className="w-full rounded-full overflow-hidden"
+              style={{ height: 18, backgroundColor: DashboardScreenCON.PROGRESS_BAR_TRACK_COLOR }}
             >
               <View
                 className="h-full rounded-full"
