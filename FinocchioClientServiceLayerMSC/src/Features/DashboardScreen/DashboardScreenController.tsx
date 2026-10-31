@@ -1,6 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { BackHandler, Pressable, Text, View, useWindowDimensions, type LayoutChangeEvent } from "react-native";
+import {
+  BackHandler,
+  Pressable,
+  Text,
+  View,
+  useWindowDimensions,
+  type LayoutChangeEvent,
+} from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -11,14 +19,19 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
+import ApplicationRouteCON from "@/Constants/ApplicationRouteCON";
 import ColorFactoryCON from "@/Constants/ColorFactoryCON";
 import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
-import DashboardScreenAddCategoryCardStaticComponent from "@/Features/DashboardScreen/Components/static/DashboardScreenAddCategoryCardStaticComponent";
-import DashboardScreenCategoryCardStaticComponent from "@/Features/DashboardScreen/Components/static/DashboardScreenCategoryCardStaticComponent";
-import DashboardScreenCategoryExpandOverlayStaticComponent from "@/Features/DashboardScreen/Components/static/DashboardScreenCategoryExpandOverlayStaticComponent";
+import DashboardScreenAddCategoryCardStaticComponent from "@/Features/DashboardScreen/Components/Static/DashboardScreenAddCategoryCardStaticComponent";
+import DashboardScreenCategoryCardStaticComponent from "@/Features/DashboardScreen/Components/Static/DashboardScreenCategoryCardStaticComponent";
+import DashboardScreenCategoryExpandOverlayStaticComponent from "@/Features/DashboardScreen/Components/Static/DashboardScreenCategoryExpandOverlayStaticComponent";
 import DashboardScreenCON from "@/Features/DashboardScreen/Constants/DashboardScreenCON";
 import type { DashboardMeasuredRectModel } from "@/Features/DashboardScreen/Models/DashboardScreenModel";
 import DashboardScreenService from "@/Features/DashboardScreen/Services/DashboardScreenService";
+import DashboardScreenTwinActionButtonsSectionComponent
+  from "@/Features/DashboardScreen/Components/Sections/DashboardScreenTwinActionButtonsSectionComponent";
+import DashboardScreenHeaderSectionComponent
+  from "@/Features/DashboardScreen/Components/Sections/DashboardScreenHeaderSectionComponent";
 
 // Top bar elements (avatars, +, filter dropdown) are static placeholders
 // for this design-system pass, not wired to navigation.
@@ -46,6 +59,12 @@ export default function DashboardScreenController(): React.JSX.Element {
   const cardStep = DashboardScreenService.current.getCategoryCardStep();
   const { height: screenHeight } = useWindowDimensions();
   const headerSlideDistance = screenHeight;
+  // Resolved to a plain number here, outside the worklet below -- see
+  // DashboardScreenCategoryCardStaticComponent's comment on why a
+  // DashboardScreenCON property must never be read directly inside a
+  // useAnimatedStyle callback.
+  const headerSlideAwayEndProgress =
+    DashboardScreenCON.EXPAND_SLIDE_AWAY_END_PROGRESS;
 
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler((event) => {
@@ -57,8 +76,14 @@ export default function DashboardScreenController(): React.JSX.Element {
     setStackAreaHeight(event.nativeEvent.layout.height);
   };
 
-  const stackContentHeight = stackAreaHeight + Math.max(categories.length - 1, 0) * cardStep;
-  const addCardTop = Math.max(stackAreaHeight - DashboardScreenCON.CATEGORY_CARD_HEIGHT - EdgeInsetsCON.MD, 0);
+  const stackContentHeight =
+    stackAreaHeight + Math.max(categories.length - 1, 0) * cardStep;
+  const addCardTop = Math.max(
+    stackAreaHeight -
+      DashboardScreenCON.ADD_CARD_HEIGHT -
+      EdgeInsetsCON.MD,
+    0,
+  );
 
   // Tap-to-expand sequence state. expandProgress/selectedIndex/expandedCardRect
   // are shared values so every card's worklet reacts to them directly without
@@ -67,9 +92,16 @@ export default function DashboardScreenController(): React.JSX.Element {
   // category's data the overlay renders, conditionally mounting the overlay).
   const expandProgress = useSharedValue(0);
   const selectedIndex = useSharedValue(-1);
-  const expandedCardRect = useSharedValue<DashboardMeasuredRectModel>({ x: 0, y: 0, width: 0, height: 0 });
+  const expandedCardRect = useSharedValue<DashboardMeasuredRectModel>({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+  });
   const [isSequenceActive, setIsSequenceActive] = useState(false);
-  const [selectedCategoryIndex, setSelectedCategoryIndex] = useState<number | null>(null);
+  const [selectedCategoryIndex, setSelectedCategoryIndex] = useState<
+    number | null
+  >(null);
 
   const resetSequence = (): void => {
     setIsSequenceActive(false);
@@ -80,15 +112,22 @@ export default function DashboardScreenController(): React.JSX.Element {
   const handleCardTap = (index: number): void => {
     setSelectedCategoryIndex(index);
     setIsSequenceActive(true);
-    expandProgress.value = withSpring(1, DashboardScreenCON.EXPAND_SPRING_CONFIG);
+    expandProgress.value = withSpring(
+      1,
+      DashboardScreenCON.EXPAND_SPRING_CONFIG,
+    );
   };
 
   const handleReverseTap = (): void => {
-    expandProgress.value = withSpring(0, DashboardScreenCON.EXPAND_SPRING_CONFIG, (finished) => {
-      if (finished) {
-        runOnJS(resetSequence)();
-      }
-    });
+    expandProgress.value = withSpring(
+      0,
+      DashboardScreenCON.EXPAND_SPRING_CONFIG,
+      (finished) => {
+        if (finished) {
+          runOnJS(resetSequence)();
+        }
+      },
+    );
   };
 
   // Android hardware back button mirrors tapping the fullscreen card --
@@ -97,17 +136,20 @@ export default function DashboardScreenController(): React.JSX.Element {
     if (!isSequenceActive) {
       return;
     }
-    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
-      handleReverseTap();
-      return true;
-    });
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        handleReverseTap();
+        return true;
+      },
+    );
     return () => subscription.remove();
   }, [isSequenceActive]);
 
   const headerAnimatedStyle = useAnimatedStyle(() => {
     const slideAwayTranslateY = interpolate(
       expandProgress.value,
-      [0, DashboardScreenCON.EXPAND_SLIDE_AWAY_END_PROGRESS],
+      [0, headerSlideAwayEndProgress],
       [0, -headerSlideDistance],
       Extrapolation.CLAMP,
     );
@@ -117,39 +159,21 @@ export default function DashboardScreenController(): React.JSX.Element {
     };
   });
 
-  const selectedCategory = selectedCategoryIndex !== null ? categories[selectedCategoryIndex] : null;
+  const selectedCategory =
+    selectedCategoryIndex !== null ? categories[selectedCategoryIndex] : null;
 
   return (
-    <View className="flex-1" style={{ backgroundColor: ColorFactoryCON.BACKGROUND, paddingInline: 5 }}>
-      <Animated.View style={[{ paddingHorizontal: EdgeInsetsCON.LG, paddingTop: EdgeInsetsCON.XXL }, headerAnimatedStyle]}>
-        <View className="flex-row items-center justify-between" style={{ marginBottom: EdgeInsetsCON.XL }}>
-          <View className="flex-row items-center">
-            <View
-              className="w-9 h-9 rounded-full bg-white items-center justify-center"
-              style={{ borderWidth: 2, borderColor: ColorFactoryCON.BACKGROUND }}
-            >
-              <Ionicons name="person" size={16} color={ColorFactoryCON.SUBTLE_TEXT} />
-            </View>
-            <View
-              className="w-9 h-9 rounded-full bg-white items-center justify-center -ml-3"
-              style={{ borderWidth: 2, borderColor: ColorFactoryCON.BACKGROUND }}
-            >
-              <Ionicons name="person" size={16} color={ColorFactoryCON.SUBTLE_TEXT} />
-            </View>
-            <Pressable className="w-9 h-9 rounded-full bg-white items-center justify-center ml-2" disabled>
-              <Ionicons name="add" size={18} color={ColorFactoryCON.INK} />
-            </Pressable>
-          </View>
+    <View
+      className="flex-1"
+      style={{ backgroundColor: ColorFactoryCON.BACKGROUND, paddingInline: 8 }}
+    >
+      <Animated.View
+        style={[{ paddingTop: EdgeInsetsCON.XXL }, headerAnimatedStyle]}
+      >
 
-          <Pressable className="flex-row items-center" disabled>
-            <Ionicons name="chevron-down" size={18} color={ColorFactoryCON.INK} />
-          </Pressable>
-        </View>
+       <DashboardScreenHeaderSectionComponent />
 
-        <Text style={{ color: ColorFactoryCON.SUBTLE_TEXT, fontSize: 16 }}>{DashboardScreenCON.HEADER_LABEL}</Text>
-        <Text className="mb-6" style={{ color: ColorFactoryCON.INK, fontSize: 40, fontWeight: "700" }}>
-          {DashboardScreenCON.PERIOD_LABEL}
-        </Text>
+       <DashboardScreenTwinActionButtonsSectionComponent />
       </Animated.View>
 
       <View style={{ flex: 1 }} onLayout={onStackAreaLayout}>
@@ -158,7 +182,10 @@ export default function DashboardScreenController(): React.JSX.Element {
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
           scrollEnabled={!isSequenceActive}
-          contentContainerStyle={{ paddingHorizontal: EdgeInsetsCON.LG, height: stackContentHeight }}
+          contentContainerStyle={{
+            paddingHorizontal: EdgeInsetsCON.LG,
+            height: stackContentHeight,
+          }}
         >
           {stackAreaHeight > 0 && (
             <DashboardScreenAddCategoryCardStaticComponent
@@ -166,6 +193,7 @@ export default function DashboardScreenController(): React.JSX.Element {
               top={addCardTop}
               expandProgress={expandProgress}
               isSequenceActive={isSequenceActive}
+              onPress={() => router.push(ApplicationRouteCON.CREATE_CATEGORY_SCREEN_ROUTE)}
             />
           )}
 
