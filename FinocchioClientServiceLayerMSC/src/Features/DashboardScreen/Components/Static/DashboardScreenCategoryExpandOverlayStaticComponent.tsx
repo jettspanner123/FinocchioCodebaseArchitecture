@@ -29,10 +29,15 @@ export default function DashboardScreenCategoryExpandOverlayStaticComponent({
   onPress,
 }: DashboardScreenCategoryExpandOverlayStaticComponentProps): React.JSX.Element {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  // Resolved to a plain number here, outside the worklet below -- see
+  // DashboardScreenCategoryCardStaticComponent's comment on why a
+  // DashboardScreenCON property must never be read directly inside a
+  // useAnimatedStyle callback.
+  const growthStartProgress = DashboardScreenCON.EXPAND_GROWTH_START_PROGRESS;
 
   const animatedStyle = useAnimatedStyle(() => {
     const rect = expandedCardRect.value;
-    const growthRange = [DashboardScreenCON.EXPAND_GROWTH_START_PROGRESS, 1];
+    const growthRange = [growthStartProgress, 1];
 
     return {
       top: interpolate(expandProgress.value, growthRange, [rect.y, 0], Extrapolation.CLAMP),
