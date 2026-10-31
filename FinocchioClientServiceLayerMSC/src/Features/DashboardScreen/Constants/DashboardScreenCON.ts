@@ -14,7 +14,7 @@ export default class DashboardScreenCON {
   // are absolutely positioned (so the sticky-pin scroll animation can control
   // their position via transform) -- absolute positioning can't rely on
   // intrinsic/content-driven sizing the way normal flow layout could.
-  public static readonly CATEGORY_CARD_HEIGHT: number = 350;
+  public static readonly CATEGORY_CARD_HEIGHT: number = 275;
 
   // Subtle depth treatment so stacked/pinned cards read as physically on top
   // of each other. Dark, low-opacity border so it stays equally subtle across
@@ -66,6 +66,10 @@ export default class DashboardScreenCON {
   public static readonly ADD_CARD_TITLE: string = "Create Category";
   public static readonly ADD_CARD_SUBTITLE: string = "Set up a personal or shared budget";
   public static readonly ADD_CARD_BACKGROUND_COLOR: string = "#1C1C28";
+  // Deliberately its own constant, not CATEGORY_CARD_HEIGHT -- this card isn't
+  // part of the pinned stack sizing math, so growing it doesn't inflate every
+  // category card too.
+  public static readonly ADD_CARD_HEIGHT: number = 410;
 
   // Tap-to-expand "zoom" animation (see
   // FinocchioAgentDocumentationNMSC/PRD/CATEGORY_CARD_EXPAND_PRD.md). One
