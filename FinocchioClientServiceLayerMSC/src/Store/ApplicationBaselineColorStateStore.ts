@@ -11,7 +11,10 @@ import type { ApplicationColorPaletteType } from "./Interface/ApplicationBaselin
 const LIGHT_PALETTE: ApplicationColorPaletteType = {
   BACKGROUND: "#F3EFFB",
   INK: "#1C1C28",
-  SUBTLE_TEXT: "#8A8A99",
+  // Changed from #8A8A99 (2026-11-01, CREATE_CATEGORY_IMPROVEMENTS_PRD.md #1):
+  // the old value was 3.40:1 on white / 3.00:1 on BACKGROUND, below the 4.5:1
+  // minimum for text under 18pt. #6B6B7A verified at 4.62:1 / 5.23:1.
+  SUBTLE_TEXT: "#6B6B7A",
   // Exact category colors provided 2026-10-28 (replacing the earlier
   // by-eye-estimated mockup colors). All four _TEXT entries are now the same
   // INK value -- every card uses black text/icons per that update, kept as
