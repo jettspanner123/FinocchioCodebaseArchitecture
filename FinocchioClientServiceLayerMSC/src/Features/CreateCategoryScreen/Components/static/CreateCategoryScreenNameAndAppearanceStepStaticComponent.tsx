@@ -21,7 +21,7 @@ interface CreateCategoryScreenNameAndAppearanceStepStaticComponentProps {
 }
 
 // e.g. "fast-food" -> "Fast Food"
-function formatIconLabel(iconName: string): string {
+export function formatIconLabel(iconName: string): string {
   return iconName
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -51,17 +51,32 @@ export default function CreateCategoryScreenNameAndAppearanceStepStaticComponent
           placeholder="e.g. Groceries"
           value={name}
           onChangeText={onChangeName}
+          accessibilityLabel="Category name"
           style={[
             { borderRadius: 9999 },
             isNameInvalid ? { borderColor: CreateCategoryScreenCON.VALIDATION_ERROR_RED } : null,
           ]}
           placeholderTextColor={isNameInvalid ? CreateCategoryScreenCON.VALIDATION_ERROR_RED : undefined}
         />
+        {isNameInvalid ? (
+          <Text
+            style={{
+              color: CreateCategoryScreenCON.VALIDATION_ERROR_RED,
+              fontSize: 13,
+              marginTop: EdgeInsetsCON.XS,
+              paddingHorizontal: EdgeInsetsCON.LG,
+            }}
+          >
+            {CreateCategoryScreenCON.NAME_REQUIRED_ERROR}
+          </Text>
+        ) : null}
       </Animated.View>
 
       <Animated.View style={[{ marginTop: EdgeInsetsCON.LG }, iconAnimatedStyle]}>
         <Pressable
           onPress={onOpenIconPicker}
+          accessibilityRole="button"
+          accessibilityLabel="Select icon"
           className="flex-row items-center justify-between"
           style={{
             height: 56,
@@ -89,6 +104,18 @@ export default function CreateCategoryScreenNameAndAppearanceStepStaticComponent
           )}
           <Ionicons name="chevron-forward" size={18} color={ColorFactoryCON.SUBTLE_TEXT} />
         </Pressable>
+        {isIconInvalid ? (
+          <Text
+            style={{
+              color: CreateCategoryScreenCON.VALIDATION_ERROR_RED,
+              fontSize: 13,
+              marginTop: EdgeInsetsCON.XS,
+              paddingHorizontal: EdgeInsetsCON.LG,
+            }}
+          >
+            {CreateCategoryScreenCON.ICON_REQUIRED_ERROR}
+          </Text>
+        ) : null}
       </Animated.View>
     </View>
   );
