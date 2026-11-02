@@ -6,3 +6,18 @@ export enum CreateCategoryScreenStepEnum {
   BUDGET,
   TYPE_AND_MEMBERS,
 }
+
+// Budget reset period -- explicit enum, not an arbitrary interval. Order
+// matters: it's also the pill display order on the Budget step.
+export enum CreateCategoryScreenBudgetPeriodEnum {
+  DAY,
+  WEEK,
+  MONTH,
+  YEAR,
+}
+
+// Order matters: it's also the pill display order on the Type step.
+export enum CreateCategoryScreenTypeEnum {
+  PERSONAL,
+  SHARED,
+}
