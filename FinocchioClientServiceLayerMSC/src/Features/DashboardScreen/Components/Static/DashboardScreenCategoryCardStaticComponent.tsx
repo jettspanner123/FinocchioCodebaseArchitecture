@@ -164,7 +164,15 @@ export default function DashboardScreenCategoryCardStaticComponent({
             className="flex-row items-center justify-between pb-3"
             style={{ borderBottomWidth: 1, borderBottomColor: "rgba(0, 0, 0, 0.07)" }}
           >
-            <View className="flex-row items-center">
+            <View
+              className="flex-row items-center"
+              accessible
+              accessibilityLabel={
+                category.members && category.members.length > 0
+                  ? `Shared with ${category.members.map((member) => member.name).join(", ")}`
+                  : "Personal category"
+              }
+            >
               {category.members && category.members.length > 0 ? (
                 category.members.slice(0, 3).map((member, memberIdx) => (
                   <View
@@ -192,8 +200,8 @@ export default function DashboardScreenCategoryCardStaticComponent({
               )}
             </View>
 
-            <Pressable hitSlop={8}>
-              <Ionicons name="ellipsis-horizontal" size={20} color={style.textColor} />
+            <Pressable hitSlop={8} accessibilityRole="button" accessibilityLabel="More options">
+              <Ionicons name="ellipsis-horizontal-outline" size={20} color={style.textColor} />
             </Pressable>
           </View>
 
@@ -234,7 +242,7 @@ export default function DashboardScreenCategoryCardStaticComponent({
               <Text style={{ color: style.textColor, fontWeight: "700", fontSize: 14 }}>{progress.percentage}% used</Text>
               <Text
                 style={{
-                  color: progress.isOverCap ? DashboardScreenCON.PROGRESS_BAR_DANGER_COLOR : style.textColor,
+                  color: progress.isOverCap ? DashboardScreenCON.PROGRESS_BAR_DANGER_TEXT_COLOR : style.textColor,
                   opacity: progress.isOverCap ? 1 : 0.7,
                   fontWeight: progress.isOverCap ? "700" : "500",
                   fontSize: 13,
@@ -255,7 +263,7 @@ export default function DashboardScreenCategoryCardStaticComponent({
                 {category.transactionCount} transactions
               </Text>
             </View>
-            <Text style={{ color: style.textColor, opacity: 0.6, fontSize: 13 }}>{category.periodLabel}</Text>
+            <Text style={{ color: style.textColor, opacity: 0.75, fontSize: 13 }}>{category.periodLabel}</Text>
           </View>
         </Animated.View>
       </Pressable>
