@@ -7,9 +7,13 @@ import ColorFactoryCON from "@/Constants/ColorFactoryCON";
 import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
 
 export interface BottomSheetHeaderTrailingActionModel {
-  iconName: keyof typeof Ionicons.glyphMap;
+  // A rendered icon element, not a name -- lets a trailing action use any
+  // icon family (e.g. MaterialIcons for a glyph Ionicons doesn't have), not
+  // just Ionicons.
+  icon: React.ReactNode;
   onPress: () => void;
   accessibilityLabel?: string;
+  disabled?: boolean;
 }
 
 interface BottomSheetHeaderSharedComponentProps {
@@ -67,10 +71,11 @@ export default function BottomSheetHeaderSharedComponent({
         {trailingActions.map((action, index) => (
           <SecondaryActionButtonSharedComponent
             key={index}
-            iconName={action.iconName}
+            leadingElement={action.icon}
             onPress={action.onPress}
             height={ACTION_BUTTON_SIZE}
             accessibilityLabel={action.accessibilityLabel}
+            disabled={action.disabled}
           />
         ))}
       </View>
