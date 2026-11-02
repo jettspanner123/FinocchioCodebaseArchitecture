@@ -24,6 +24,30 @@ export default class CreateCategoryScreenCON {
     "Choose whether this category is personal or shared, and add anyone you want splitting it with you.",
   ];
 
+  // Persistent inline error text shown under an invalid field (see
+  // CREATE_CATEGORY_IMPROVEMENTS_PRD.md #5) -- color/shake alone don't say
+  // what's wrong or persist for someone who missed the shake.
+  public static readonly NAME_REQUIRED_ERROR: string = "Name is required";
+  public static readonly ICON_REQUIRED_ERROR: string = "Pick an icon to continue";
+  public static readonly AMOUNT_REQUIRED_ERROR: string = "Enter a budget amount";
+
+  public static readonly BUDGET_PERIOD_SECTION_HEADING: string = "Budget Period";
+  // Indexed by CreateCategoryScreenBudgetPeriodEnum -- order matches the
+  // enum's declaration order.
+  public static readonly BUDGET_PERIOD_LABELS: readonly string[] = ["Day", "Week", "Month", "Year"];
+  // Rupees, matching DashboardScreenService.formatCurrency's single-currency
+  // (INR) decision.
+  public static readonly CURRENCY_SYMBOL: string = "₹";
+  public static readonly AMOUNT_PLACEHOLDER: string = "0";
+
+  // Indexed by CreateCategoryScreenTypeEnum -- order matches the enum's
+  // declaration order.
+  public static readonly TYPE_LABELS: readonly string[] = ["Personal", "Shared"];
+  // No real friends/contacts/invite system exists yet anywhere in this app --
+  // see grilling session 2026-11-02 for why this is an honest placeholder
+  // rather than a mocked searchable friends list or free-text invite chips.
+  public static readonly SHARED_MEMBERS_COMING_SOON_MESSAGE: string = "Member invites coming soon";
+
   public static readonly PREVIOUS_BUTTON_LABEL: string = "Previous";
   public static readonly NEXT_BUTTON_LABEL: string = "Next";
   public static readonly FIRST_STEP_NEXT_BUTTON_LABEL: string = "Continue";
@@ -37,7 +61,9 @@ export default class CreateCategoryScreenCON {
   // bg/text stay the full dark green.
   public static readonly CREATE_BUTTON_GREEN_BORDER: string = "#A0B2AF";
 
-  // Tailwind red-300 -- border/text/icon tint for an invalid field, paired
-  // with useShakeAnimationHook.
-  public static readonly VALIDATION_ERROR_RED: string = "#FCA5A5";
+  // Tailwind red-600 (changed from red-300 2026-11-01, see
+  // CREATE_CATEGORY_IMPROVEMENTS_PRD.md #2 -- red-300 was 1.90:1 on white,
+  // red-600 verified at 4.83:1) -- border/text/icon tint for an invalid
+  // field, paired with useShakeAnimationHook.
+  public static readonly VALIDATION_ERROR_RED: string = "#DC2626";
 }
