@@ -5,6 +5,7 @@ import { Pressable, View, useWindowDimensions } from "react-native";
 import ColorFactoryCON from "@/Constants/ColorFactoryCON";
 import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
 import ApplicationPhysicalFeedback from "@/Services/ApplicationPhysicalFeedback";
+import { formatIconLabel } from "@/Features/CreateCategoryScreen/Components/static/CreateCategoryScreenNameAndAppearanceStepStaticComponent";
 import CreateCategoryScreenCON from "@/Features/CreateCategoryScreen/Constants/CreateCategoryScreenCON";
 
 interface CreateCategoryScreenIconGridStaticComponentProps {
@@ -24,12 +25,12 @@ export default function CreateCategoryScreenIconGridStaticComponent({
 }: CreateCategoryScreenIconGridStaticComponentProps): React.JSX.Element {
   const { width: screenWidth } = useWindowDimensions();
   const cellSize =
-    (screenWidth - EdgeInsetsCON.LG * 2 - EdgeInsetsCON.SM * (GRID_COLUMNS - 1)) / GRID_COLUMNS;
+    (screenWidth - EdgeInsetsCON.LG * 2 - EdgeInsetsCON.MD * (GRID_COLUMNS - 1)) / GRID_COLUMNS;
 
   return (
     <View
       className="flex-row flex-wrap"
-      style={{ gap: EdgeInsetsCON.SM, padding: EdgeInsetsCON.LG }}
+      style={{ gap: EdgeInsetsCON.MD, padding: EdgeInsetsCON.LG }}
     >
       {CreateCategoryScreenCON.AVAILABLE_CATEGORY_ICONS.map((iconName) => {
         const isSelected = iconName === selectedIconName;
@@ -38,6 +39,9 @@ export default function CreateCategoryScreenIconGridStaticComponent({
             key={iconName}
             onPressIn={() => void ApplicationPhysicalFeedback.current.haptic.triggerHaptic()}
             onPress={() => onSelect(iconName)}
+            accessibilityRole="button"
+            accessibilityLabel={formatIconLabel(iconName)}
+            accessibilityState={{ selected: isSelected }}
             style={{
               width: cellSize,
               height: cellSize,
