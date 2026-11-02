@@ -10,18 +10,20 @@ export default function DashboardScreenTwinActionButtonsSectionComponent() {
                 className="flex-1 flex-row bg-white justify-start items-center"
                 style={{
                     height: 56,
-                    paddingHorizontal: 5,
+                    paddingHorizontal: EdgeInsetsCON.XS,
                     borderWidth: 1,
                     borderColor: "rgba(0, 0, 0, 0.15)",
                     borderRadius: 9999,
                 }}
                 disabled
+                accessibilityRole="button"
+                accessibilityLabel="Add Amount"
             >
                 <View
                     className="w-12 h-12 rounded-full items-center justify-center"
                     style={{backgroundColor: "rgba(0, 0, 0, 0.06)"}}
                 >
-                    <Ionicons name="add" size={18} color={ColorFactoryCON.INK}/>
+                    <Ionicons name="add-outline" size={18} color={ColorFactoryCON.INK}/>
                 </View>
                 <Text
                     style={{
@@ -39,14 +41,13 @@ export default function DashboardScreenTwinActionButtonsSectionComponent() {
                 style={{
                     height: 56,
                     borderWidth: 1,
-                    paddingHorizontal: 5,
+                    paddingHorizontal: EdgeInsetsCON.XS,
                     borderColor: "rgba(0, 0, 0, 0.15)",
-                    borderTopLeftRadius: 9999,
-                    borderBottomLeftRadius: 9999,
-                    borderTopRightRadius: 9999,
-                    borderBottomRightRadius: 9999,
+                    borderRadius: 9999,
                 }}
                 disabled
+                accessibilityRole="button"
+                accessibilityLabel="Record Amount"
             >
                 <View
                     className="w-12 h-12 rounded-full items-center justify-center"
