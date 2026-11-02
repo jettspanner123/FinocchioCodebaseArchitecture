@@ -1,8 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { View, useWindowDimensions } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import { Keyboard, Platform, ScrollView, View, useWindowDimensions } from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import BottomSheetHeaderSharedComponent from "@/Components/Shared/BottomSheetHeaderSharedComponent";
@@ -16,7 +16,11 @@ import CreateCategoryScreenIconGridStaticComponent from "@/Features/CreateCatego
 import CreateCategoryScreenNameAndAppearanceStepStaticComponent from "@/Features/CreateCategoryScreen/Components/static/CreateCategoryScreenNameAndAppearanceStepStaticComponent";
 import CreateCategoryScreenTypeAndMembersStepStaticComponent from "@/Features/CreateCategoryScreen/Components/static/CreateCategoryScreenTypeAndMembersStepStaticComponent";
 import CreateCategoryScreenCON from "@/Features/CreateCategoryScreen/Constants/CreateCategoryScreenCON";
-import { CreateCategoryScreenStepEnum } from "@/Features/CreateCategoryScreen/Models/CreateCategoryScreenModel";
+import {
+  CreateCategoryScreenBudgetPeriodEnum,
+  CreateCategoryScreenStepEnum,
+  CreateCategoryScreenTypeEnum,
+} from "@/Features/CreateCategoryScreen/Models/CreateCategoryScreenModel";
 import useShakeAnimationHook from "@/Hooks/useShakeAnimationHook";
 
 const LAST_STEP = CreateCategoryScreenStepEnum.TYPE_AND_MEMBERS;
@@ -39,10 +43,14 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
   const [selectedIconName, setSelectedIconName] = useState<keyof typeof Ionicons.glyphMap | null>(null);
   const [isNameInvalid, setIsNameInvalid] = useState(false);
   const [isIconInvalid, setIsIconInvalid] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [period, setPeriod] = useState(CreateCategoryScreenBudgetPeriodEnum.MONTH);
+  const [isAmountInvalid, setIsAmountInvalid] = useState(false);
+  const [type, setType] = useState(CreateCategoryScreenTypeEnum.PERSONAL);
 
   const isFirstStep = currentStep === CreateCategoryScreenStepEnum.NAME_AND_APPEARANCE;
   const isLastStep = currentStep === LAST_STEP;
-  const hasValidationError = isNameInvalid || isIconInvalid;
+  const hasValidationError = isNameInvalid || isIconInvalid || isAmountInvalid;
 
   // Live-clear per field as soon as it becomes valid, rather than waiting
   // for the next Continue press to re-validate.
@@ -56,10 +64,44 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
       setIsIconInvalid(false);
     }
   }, [selectedIconName]);
+  useEffect(() => {
+    if (parseFloat(amount) > 0) {
+      setIsAmountInvalid(false);
+    }
+  }, [amount]);
 
   const nameShake = useShakeAnimationHook();
   const iconShake = useShakeAnimationHook();
+  const amountShake = useShakeAnimationHook();
   const continueButtonShake = useShakeAnimationHook();
+
+  // Drives both the button-row keyboard-sync transform (below) and the
+  // header's dismiss-keyboard button's enabled state. Reanimated's own
+  // useAnimatedKeyboard hook is deprecated "due to persistent bugs on iOS
+  // 26" (its own docs) and caused a silent, uncatchable blank-screen crash
+  // on this exact screen -- see grilling session 2026-11-02. Keyboard.addListener
+  // is the plain, zero-native-dependency fallback: it can't track the OS
+  // keyboard animation frame-for-frame, but it actually renders.
+  const keyboardHeight = useSharedValue(0);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSubscription = Keyboard.addListener(showEvent, (event) => {
+      keyboardHeight.value = withTiming(event.endCoordinates.height, { duration: event.duration || 250 });
+      setIsKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener(hideEvent, (event) => {
+      keyboardHeight.value = withTiming(0, { duration: event.duration || 250 });
+      setIsKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, [keyboardHeight]);
 
   // Previous always occupies its half of the row (same width on every page,
   // per the request that Next never grows/shrinks) -- on the first step it's
@@ -73,6 +115,21 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
 
   const previousButtonAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: previousButtonTranslateX.value }],
+  }));
+
+  // Subtracting LG (not insets.bottom) means the row lands with a snug LG
+  // gap above the keyboard, since the safe-area inset baked into the row's
+  // own bottom padding is irrelevant once the keyboard covers that area --
+  // see grilling session 2026-11-02.
+  //
+  // Resolved to a plain number here, outside the worklet below -- Reanimated's
+  // worklet closure capture doesn't reliably serialize a live reference to an
+  // ES6 class (EdgeInsetsCON) the way it does a plain number -- see
+  // DashboardScreenCategoryCardStaticComponent's identical comment; this was
+  // the actual cause of the blank-screen crash, not useAnimatedKeyboard.
+  const buttonRowBottomGap = EdgeInsetsCON.LG;
+  const buttonRowKeyboardAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: -Math.max(keyboardHeight.value - buttonRowBottomGap, 0) }],
   }));
 
   const goToPreviousStep = (): void => {
@@ -105,6 +162,16 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
       }
     }
 
+    if (currentStep === CreateCategoryScreenStepEnum.BUDGET) {
+      const amountInvalid = !(parseFloat(amount) > 0);
+      if (amountInvalid) {
+        setIsAmountInvalid(true);
+        continueButtonShake.shake();
+        amountShake.shake();
+        return;
+      }
+    }
+
     setCurrentStep(currentStep + 1);
   };
 
@@ -124,9 +191,18 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
           />
         );
       case CreateCategoryScreenStepEnum.BUDGET:
-        return <CreateCategoryScreenBudgetStepStaticComponent />;
+        return (
+          <CreateCategoryScreenBudgetStepStaticComponent
+            amount={amount}
+            onChangeAmount={setAmount}
+            isAmountInvalid={isAmountInvalid}
+            amountAnimatedStyle={amountShake.animatedStyle}
+            period={period}
+            onChangePeriod={setPeriod}
+          />
+        );
       case CreateCategoryScreenStepEnum.TYPE_AND_MEMBERS:
-        return <CreateCategoryScreenTypeAndMembersStepStaticComponent />;
+        return <CreateCategoryScreenTypeAndMembersStepStaticComponent type={type} onChangeType={setType} />;
     }
   };
 
@@ -137,19 +213,35 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
         leadingIconName="chevron-back"
         leadingAccessibilityLabel="Back"
         onLeadingPress={() => router.back()}
+        trailingActions={[
+          {
+            icon: <MaterialIcons name="keyboard-hide" size={24} color={ColorFactoryCON.INK} />,
+            onPress: () => Keyboard.dismiss(),
+            accessibilityLabel: "Dismiss keyboard",
+            disabled: !isKeyboardVisible,
+          },
+        ]}
       />
 
-      <View style={{ flex: 1, paddingHorizontal: EdgeInsetsCON.LG }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: EdgeInsetsCON.LG, flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <ScreenDescriptionSharedComponent
           text={CreateCategoryScreenCON.STEP_DESCRIPTIONS[currentStep]}
           style={{ marginBottom: EdgeInsetsCON.LG }}
         />
         {renderStepContent()}
-      </View>
+      </ScrollView>
 
-      <View
+      <Animated.View
         className="flex-row"
-        style={{ gap: EdgeInsetsCON.SM, padding: EdgeInsetsCON.LG, paddingBottom: insets.bottom + EdgeInsetsCON.LG }}
+        style={[
+          { gap: EdgeInsetsCON.SM, padding: EdgeInsetsCON.LG, paddingBottom: insets.bottom + EdgeInsetsCON.LG },
+          buttonRowKeyboardAnimatedStyle,
+        ]}
       >
         <Animated.View style={[{ flex: 1 }, previousButtonAnimatedStyle]}>
           <SecondaryActionButtonSharedComponent
@@ -213,7 +305,7 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
             }
           />
         </Animated.View>
-      </View>
+      </Animated.View>
 
       <BottomSheetSharedComponent
         visible={isIconSheetOpen}
