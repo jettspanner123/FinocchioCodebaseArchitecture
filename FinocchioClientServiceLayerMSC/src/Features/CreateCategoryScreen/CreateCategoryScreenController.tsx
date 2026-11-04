@@ -1,7 +1,7 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { BackHandler, Keyboard, Platform, ScrollView, Text, View, useWindowDimensions } from "react-native";
+import { BackHandler, Keyboard, Platform, ScrollView, View, useWindowDimensions } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -520,43 +520,27 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
         visible={isDiscardDialogOpen}
         onClose={() => setIsDiscardDialogOpen(false)}
         onDismissed={handleDialogDismissed}
-      >
-        <View style={{ gap: EdgeInsetsCON.SM }}>
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "700",
-              color: ColorFactoryCON.INK,
-            }}
-          >
-            {CreateCategoryScreenCON.DISCARD_DIALOG_TITLE}
-          </Text>
-          <Text
-            style={{
-              fontSize: 14,
-              color: ColorFactoryCON.SUBTLE_TEXT,
-              marginBottom: EdgeInsetsCON.MD,
-            }}
-          >
-            {CreateCategoryScreenCON.DISCARD_DIALOG_MESSAGE}
-          </Text>
-          <View style={{ gap: EdgeInsetsCON.SM }}>
-            <SecondaryActionButtonSharedComponent
-              label={CreateCategoryScreenCON.DISCARD_DIALOG_CONFIRM_LABEL}
-              width="full"
-              backgroundColor={CreateCategoryScreenCON.VALIDATION_ERROR_RED}
-              borderColor={CreateCategoryScreenCON.VALIDATION_ERROR_RED}
-              textColor="#FFFFFF"
-              onPress={handleConfirmDiscard}
-            />
-            <SecondaryActionButtonSharedComponent
-              label={CreateCategoryScreenCON.DISCARD_DIALOG_CANCEL_LABEL}
-              width="full"
-              onPress={() => setIsDiscardDialogOpen(false)}
-            />
-          </View>
-        </View>
-      </ConfirmationDialogSharedComponent>
+        title={CreateCategoryScreenCON.DISCARD_DIALOG_TITLE}
+        description={CreateCategoryScreenCON.DISCARD_DIALOG_MESSAGE}
+        actions={[
+          {
+            label: CreateCategoryScreenCON.DISCARD_DIALOG_CANCEL_LABEL,
+            iconName: "create",
+            onPress: () => setIsDiscardDialogOpen(false),
+            backgroundColor: "#FFFFFF",
+            textColor: ColorFactoryCON.INK,
+            borderColor: "rgba(0, 0, 0, 0.15)",
+          },
+          {
+            label: CreateCategoryScreenCON.DISCARD_DIALOG_CONFIRM_LABEL,
+            iconName: "trash",
+            onPress: handleConfirmDiscard,
+            backgroundColor: CreateCategoryScreenCON.VALIDATION_ERROR_RED,
+            textColor: "#FFFFFF",
+            borderColor: CreateCategoryScreenCON.VALIDATION_ERROR_RED,
+          },
+        ]}
+      />
     </View>
   );
 }
