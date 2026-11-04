@@ -1,19 +1,24 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { Keyboard, Platform, ScrollView, View, useWindowDimensions } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { BackHandler, Keyboard, Platform, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import BottomSheetHeaderSharedComponent from "@/Components/Shared/BottomSheetHeaderSharedComponent";
 import BottomSheetSharedComponent from "@/Components/Shared/BottomSheetSharedComponent";
+import ConfirmationDialogSharedComponent from "@/Components/Shared/ConfirmationDialogSharedComponent";
 import ScreenDescriptionSharedComponent from "@/Components/Shared/ScreenDescriptionSharedComponent";
 import SecondaryActionButtonSharedComponent from "@/Components/Shared/SecondaryActionButtonSharedComponent";
+import StepProgressIndicatorSharedComponent from "@/Components/Shared/StepProgressIndicatorSharedComponent";
+import TextInputSharedComponent from "@/Components/Shared/TextInputSharedComponent";
 import ColorFactoryCON from "@/Constants/ColorFactoryCON";
 import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
 import CreateCategoryScreenBudgetStepStaticComponent from "@/Features/CreateCategoryScreen/Components/static/CreateCategoryScreenBudgetStepStaticComponent";
+import CreateCategoryScreenColorGridStaticComponent from "@/Features/CreateCategoryScreen/Components/static/CreateCategoryScreenColorGridStaticComponent";
 import CreateCategoryScreenIconGridStaticComponent from "@/Features/CreateCategoryScreen/Components/static/CreateCategoryScreenIconGridStaticComponent";
 import CreateCategoryScreenNameAndAppearanceStepStaticComponent from "@/Features/CreateCategoryScreen/Components/static/CreateCategoryScreenNameAndAppearanceStepStaticComponent";
+import CreateCategoryScreenReviewStepStaticComponent from "@/Features/CreateCategoryScreen/Components/static/CreateCategoryScreenReviewStepStaticComponent";
 import CreateCategoryScreenTypeAndMembersStepStaticComponent from "@/Features/CreateCategoryScreen/Components/static/CreateCategoryScreenTypeAndMembersStepStaticComponent";
 import CreateCategoryScreenCON from "@/Features/CreateCategoryScreen/Constants/CreateCategoryScreenCON";
 import {
@@ -21,10 +26,13 @@ import {
   CreateCategoryScreenStepEnum,
   CreateCategoryScreenTypeEnum,
 } from "@/Features/CreateCategoryScreen/Models/CreateCategoryScreenModel";
+import type { DashboardCategoryMemberModel } from "@/Features/DashboardScreen/Models/DashboardScreenModel";
 import useShakeAnimationHook from "@/Hooks/useShakeAnimationHook";
 
-const LAST_STEP = CreateCategoryScreenStepEnum.TYPE_AND_MEMBERS;
-const PREVIOUS_BUTTON_SPRING_CONFIG = { duration: 450, dampingRatio: 0.85 } as const;
+const LAST_STEP = CreateCategoryScreenStepEnum.REVIEW;
+// Iconpicker's dismiss duration guess, matching the keyboard-sync row's own
+// fallback -- see grilling session 2026-11-02.
+const KEYBOARD_DISMISS_DURATION = 250;
 
 // Full screen (not a bottom sheet -- see grilling session 2026-10-31), 3-step
 // wizard: Name+Appearance -> Budget -> Type+Members. Step content is all
@@ -39,18 +47,34 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
     CreateCategoryScreenStepEnum.NAME_AND_APPEARANCE,
   );
   const [isIconSheetOpen, setIsIconSheetOpen] = useState(false);
+  const [isColorSheetOpen, setIsColorSheetOpen] = useState(false);
   const [name, setName] = useState("");
   const [selectedIconName, setSelectedIconName] = useState<keyof typeof Ionicons.glyphMap | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [isNameInvalid, setIsNameInvalid] = useState(false);
   const [isIconInvalid, setIsIconInvalid] = useState(false);
+  const [isColorInvalid, setIsColorInvalid] = useState(false);
   const [amount, setAmount] = useState("");
   const [period, setPeriod] = useState(CreateCategoryScreenBudgetPeriodEnum.MONTH);
   const [isAmountInvalid, setIsAmountInvalid] = useState(false);
   const [type, setType] = useState(CreateCategoryScreenTypeEnum.PERSONAL);
+  const [members, setMembers] = useState<DashboardCategoryMemberModel[]>([]);
+  const [isMemberSheetOpen, setIsMemberSheetOpen] = useState(false);
+  const [memberSearchQuery, setMemberSearchQuery] = useState("");
+  const [isDiscardDialogOpen, setIsDiscardDialogOpen] = useState(false);
+  const shouldNavigateOnDismiss = useRef(false);
 
   const isFirstStep = currentStep === CreateCategoryScreenStepEnum.NAME_AND_APPEARANCE;
   const isLastStep = currentStep === LAST_STEP;
-  const hasValidationError = isNameInvalid || isIconInvalid || isAmountInvalid;
+  const hasValidationError = isNameInvalid || isIconInvalid || isColorInvalid || isAmountInvalid;
+
+  const isFormDirty =
+    name.trim().length > 0 ||
+    selectedIconName !== null ||
+    selectedColor !== null ||
+    amount.trim().length > 0 ||
+    members.length > 0 ||
+    currentStep !== CreateCategoryScreenStepEnum.NAME_AND_APPEARANCE;
 
   // Live-clear per field as soon as it becomes valid, rather than waiting
   // for the next Continue press to re-validate.
@@ -65,6 +89,11 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
     }
   }, [selectedIconName]);
   useEffect(() => {
+    if (selectedColor) {
+      setIsColorInvalid(false);
+    }
+  }, [selectedColor]);
+  useEffect(() => {
     if (parseFloat(amount) > 0) {
       setIsAmountInvalid(false);
     }
@@ -72,6 +101,7 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
 
   const nameShake = useShakeAnimationHook();
   const iconShake = useShakeAnimationHook();
+  const colorShake = useShakeAnimationHook();
   const amountShake = useShakeAnimationHook();
   const continueButtonShake = useShakeAnimationHook();
 
@@ -84,6 +114,10 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
   // keyboard animation frame-for-frame, but it actually renders.
   const keyboardHeight = useSharedValue(0);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  // Plain JS-thread mirror of keyboardHeight.value -- needed because
+  // ScrollView's contentContainerStyle.paddingBottom (below) is a prop, not
+  // an animatable style, so it's set directly rather than through Reanimated.
+  const [keyboardHeightValue, setKeyboardHeightValue] = useState(0);
   useEffect(() => {
     const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
     const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
@@ -91,10 +125,12 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
     const showSubscription = Keyboard.addListener(showEvent, (event) => {
       keyboardHeight.value = withTiming(event.endCoordinates.height, { duration: event.duration || 250 });
       setIsKeyboardVisible(true);
+      setKeyboardHeightValue(event.endCoordinates.height);
     });
     const hideSubscription = Keyboard.addListener(hideEvent, (event) => {
       keyboardHeight.value = withTiming(0, { duration: event.duration || 250 });
       setIsKeyboardVisible(false);
+      setKeyboardHeightValue(0);
     });
 
     return () => {
@@ -110,7 +146,11 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
   // only its label changes.
   const previousButtonTranslateX = useSharedValue(-screenWidth);
   useEffect(() => {
-    previousButtonTranslateX.value = withSpring(isFirstStep ? -screenWidth : 0, PREVIOUS_BUTTON_SPRING_CONFIG);
+    // No config object -- withSpring's own defaults (damping: 120, stiffness:
+    // 900, mass: 4) are identical to LinearTransition.springify()'s defaults,
+    // used by the Budget Period/Type selection pill -- see grilling session
+    // 2026-11-02.
+    previousButtonTranslateX.value = withSpring(isFirstStep ? -screenWidth : 0);
   }, [isFirstStep, screenWidth, previousButtonTranslateX]);
 
   const previousButtonAnimatedStyle = useAnimatedStyle(() => ({
@@ -132,6 +172,64 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
     transform: [{ translateY: -Math.max(keyboardHeight.value - buttonRowBottomGap, 0) }],
   }));
 
+  // Shared by every bottom sheet this screen opens (icon picker, add member)
+  // -- dismiss an open keyboard first so the sheet doesn't fight it for
+  // screen space, then open once the dismiss animation's had time to finish.
+  const openSheetAfterKeyboardDismiss = (setOpen: (open: boolean) => void): void => {
+    if (isKeyboardVisible) {
+      Keyboard.dismiss();
+      setTimeout(() => setOpen(true), KEYBOARD_DISMISS_DURATION);
+      return;
+    }
+    setOpen(true);
+  };
+
+  const openIconPicker = (): void => openSheetAfterKeyboardDismiss(setIsIconSheetOpen);
+  const openColorPicker = (): void => openSheetAfterKeyboardDismiss(setIsColorSheetOpen);
+  const openMemberSheet = (): void => openSheetAfterKeyboardDismiss(setIsMemberSheetOpen);
+
+  const removeMember = (id: string): void => {
+    setMembers((previousMembers) => previousMembers.filter((member) => member.id !== id));
+  };
+
+  const handleBackPress = (): void => {
+    if (isFormDirty) {
+      setIsDiscardDialogOpen(true);
+    } else {
+      router.back();
+    }
+  };
+
+  const handleConfirmDiscard = (): void => {
+    shouldNavigateOnDismiss.current = true;
+    setIsDiscardDialogOpen(false);
+  };
+
+  const handleDialogDismissed = (): void => {
+    if (shouldNavigateOnDismiss.current) {
+      shouldNavigateOnDismiss.current = false;
+      router.back();
+    }
+  };
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+      if (isIconSheetOpen || isColorSheetOpen || isMemberSheetOpen) {
+        return false;
+      }
+      if (isDiscardDialogOpen) {
+        return false;
+      }
+      if (isFormDirty) {
+        setIsDiscardDialogOpen(true);
+        return true;
+      }
+      return false;
+    });
+
+    return () => subscription.remove();
+  }, [isFormDirty, isIconSheetOpen, isColorSheetOpen, isMemberSheetOpen, isDiscardDialogOpen]);
+
   const goToPreviousStep = (): void => {
     if (!isFirstStep) {
       setCurrentStep(currentStep - 1);
@@ -148,15 +246,20 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
     if (isFirstStep) {
       const nameInvalid = name.trim().length === 0;
       const iconInvalid = selectedIconName === null;
-      if (nameInvalid || iconInvalid) {
+      const colorInvalid = selectedColor === null;
+      if (nameInvalid || iconInvalid || colorInvalid) {
         setIsNameInvalid(nameInvalid);
         setIsIconInvalid(iconInvalid);
+        setIsColorInvalid(colorInvalid);
         continueButtonShake.shake();
         if (nameInvalid) {
           nameShake.shake();
         }
         if (iconInvalid) {
           iconShake.shake();
+        }
+        if (colorInvalid) {
+          colorShake.shake();
         }
         return;
       }
@@ -184,10 +287,14 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
             onChangeName={setName}
             isNameInvalid={isNameInvalid}
             nameAnimatedStyle={nameShake.animatedStyle}
-            onOpenIconPicker={() => setIsIconSheetOpen(true)}
+            onOpenIconPicker={openIconPicker}
             selectedIconName={selectedIconName}
             isIconInvalid={isIconInvalid}
             iconAnimatedStyle={iconShake.animatedStyle}
+            onOpenColorPicker={openColorPicker}
+            selectedColor={selectedColor}
+            isColorInvalid={isColorInvalid}
+            colorAnimatedStyle={colorShake.animatedStyle}
           />
         );
       case CreateCategoryScreenStepEnum.BUDGET:
@@ -202,7 +309,26 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
           />
         );
       case CreateCategoryScreenStepEnum.TYPE_AND_MEMBERS:
-        return <CreateCategoryScreenTypeAndMembersStepStaticComponent type={type} onChangeType={setType} />;
+        return (
+          <CreateCategoryScreenTypeAndMembersStepStaticComponent
+            type={type}
+            onChangeType={setType}
+            members={members}
+            onRemoveMember={removeMember}
+            onOpenAddMemberSheet={openMemberSheet}
+          />
+        );
+      case CreateCategoryScreenStepEnum.REVIEW:
+        return (
+          <CreateCategoryScreenReviewStepStaticComponent
+            name={name}
+            backgroundColor={selectedColor ?? CreateCategoryScreenCON.CREATE_BUTTON_GREEN}
+            amount={amount}
+            period={period}
+            type={type}
+            members={members}
+          />
+        );
     }
   };
 
@@ -212,7 +338,7 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
         title={CreateCategoryScreenCON.SCREEN_TITLE}
         leadingIconName="chevron-back"
         leadingAccessibilityLabel="Back"
-        onLeadingPress={() => router.back()}
+        onLeadingPress={handleBackPress}
         trailingActions={[
           {
             icon: <MaterialIcons name="keyboard-hide" size={24} color={ColorFactoryCON.INK} />,
@@ -225,7 +351,16 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: EdgeInsetsCON.LG, flexGrow: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: EdgeInsetsCON.LG,
+          flexGrow: 1,
+          // Matches exactly how far the button row shifts up (keyboardHeight
+          // - LG, same formula as buttonRowKeyboardAnimatedStyle below) so
+          // scrolled content can clear the row's new, higher position instead
+          // of being covered by it -- the row moves via transform, which
+          // doesn't affect this ScrollView's own flex-allocated height.
+          paddingBottom: Math.max(keyboardHeightValue - buttonRowBottomGap, 0),
+        }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -237,74 +372,81 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
       </ScrollView>
 
       <Animated.View
-        className="flex-row"
         style={[
-          { gap: EdgeInsetsCON.SM, padding: EdgeInsetsCON.LG, paddingBottom: insets.bottom + EdgeInsetsCON.LG },
+          { gap: EdgeInsetsCON.LG, padding: EdgeInsetsCON.LG, paddingBottom: insets.bottom + EdgeInsetsCON.LG },
           buttonRowKeyboardAnimatedStyle,
         ]}
       >
-        <Animated.View style={[{ flex: 1 }, previousButtonAnimatedStyle]}>
-          <SecondaryActionButtonSharedComponent
-            label={CreateCategoryScreenCON.PREVIOUS_BUTTON_LABEL}
-            width="full"
-            paddingHorizontal={EdgeInsetsCON.XS}
-            onPress={goToPreviousStep}
-            leadingElement={
-              <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "rgba(0, 0, 0, 0.06)" }}>
-                <Ionicons name="chevron-back" size={18} color={ColorFactoryCON.INK} />
-              </View>
-            }
-          />
-        </Animated.View>
-        <Animated.View style={[{ flex: 1 }, continueButtonShake.animatedStyle]}>
-          <SecondaryActionButtonSharedComponent
-            label={
-              isLastStep
-                ? CreateCategoryScreenCON.CREATE_BUTTON_LABEL
-                : isFirstStep
-                  ? CreateCategoryScreenCON.FIRST_STEP_NEXT_BUTTON_LABEL
-                  : CreateCategoryScreenCON.NEXT_BUTTON_LABEL
-            }
-            width="full"
-            paddingHorizontal={EdgeInsetsCON.XS}
-            onPress={goToNextStep}
-            backgroundColor={isLastStep ? CreateCategoryScreenCON.CREATE_BUTTON_GREEN : undefined}
-            borderColor={
-              hasValidationError
-                ? CreateCategoryScreenCON.VALIDATION_ERROR_RED
-                : isLastStep
-                  ? CreateCategoryScreenCON.CREATE_BUTTON_GREEN_BORDER
-                  : undefined
-            }
-            textColor={
-              hasValidationError
-                ? CreateCategoryScreenCON.VALIDATION_ERROR_RED
-                : isLastStep
-                  ? CreateCategoryScreenCON.CREATE_BUTTON_GREEN_DARK
-                  : undefined
-            }
-            leadingElement={
-              <View
-                className="w-12 h-12 rounded-full items-center justify-center"
-                style={{
-                  backgroundColor: isLastStep ? CreateCategoryScreenCON.CREATE_BUTTON_GREEN_DARK : "rgba(0, 0, 0, 0.06)",
-                }}
-              >
-                <Ionicons
-                  name={isLastStep ? "checkmark" : "chevron-forward"}
-                  size={18}
-                  color={
-                    hasValidationError
-                      ? CreateCategoryScreenCON.VALIDATION_ERROR_RED
-                      : isLastStep
-                        ? CreateCategoryScreenCON.CREATE_BUTTON_GREEN
-                        : ColorFactoryCON.INK
-                  }
-                />
-              </View>
-            }
-          />
-        </Animated.View>
+        <StepProgressIndicatorSharedComponent
+          currentStep={currentStep}
+          totalSteps={CreateCategoryScreenCON.TOTAL_STEPS}
+          activeColor={CreateCategoryScreenCON.CREATE_BUTTON_GREEN_DARK}
+        />
+
+        <View className="flex-row" style={{ gap: EdgeInsetsCON.SM }}>
+          <Animated.View style={[{ flex: 1 }, previousButtonAnimatedStyle]}>
+            <SecondaryActionButtonSharedComponent
+              label={CreateCategoryScreenCON.PREVIOUS_BUTTON_LABEL}
+              width="full"
+              paddingHorizontal={EdgeInsetsCON.XS}
+              onPress={goToPreviousStep}
+              leadingElement={
+                <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "rgba(0, 0, 0, 0.06)" }}>
+                  <Ionicons name="chevron-back" size={18} color={ColorFactoryCON.INK} />
+                </View>
+              }
+            />
+          </Animated.View>
+          <Animated.View style={[{ flex: 1 }, continueButtonShake.animatedStyle]}>
+            <SecondaryActionButtonSharedComponent
+              label={
+                isLastStep
+                  ? CreateCategoryScreenCON.CREATE_BUTTON_LABEL
+                  : isFirstStep
+                    ? CreateCategoryScreenCON.FIRST_STEP_NEXT_BUTTON_LABEL
+                    : CreateCategoryScreenCON.NEXT_BUTTON_LABEL
+              }
+              width="full"
+              paddingHorizontal={EdgeInsetsCON.XS}
+              onPress={goToNextStep}
+              backgroundColor={isLastStep ? CreateCategoryScreenCON.CREATE_BUTTON_GREEN : undefined}
+              borderColor={
+                hasValidationError
+                  ? CreateCategoryScreenCON.VALIDATION_ERROR_RED
+                  : isLastStep
+                    ? CreateCategoryScreenCON.CREATE_BUTTON_GREEN_BORDER
+                    : undefined
+              }
+              textColor={
+                hasValidationError
+                  ? CreateCategoryScreenCON.VALIDATION_ERROR_RED
+                  : isLastStep
+                    ? CreateCategoryScreenCON.CREATE_BUTTON_GREEN_DARK
+                    : undefined
+              }
+              leadingElement={
+                <View
+                  className="w-12 h-12 rounded-full items-center justify-center"
+                  style={{
+                    backgroundColor: isLastStep ? CreateCategoryScreenCON.CREATE_BUTTON_GREEN_DARK : "rgba(0, 0, 0, 0.06)",
+                  }}
+                >
+                  <Ionicons
+                    name={isLastStep ? "checkmark" : "chevron-forward"}
+                    size={18}
+                    color={
+                      hasValidationError
+                        ? CreateCategoryScreenCON.VALIDATION_ERROR_RED
+                        : isLastStep
+                          ? CreateCategoryScreenCON.CREATE_BUTTON_GREEN
+                          : ColorFactoryCON.INK
+                    }
+                  />
+                </View>
+              }
+            />
+          </Animated.View>
+        </View>
       </Animated.View>
 
       <BottomSheetSharedComponent
@@ -327,6 +469,94 @@ export default function CreateCategoryScreenController(): React.JSX.Element {
           }}
         />
       </BottomSheetSharedComponent>
+
+      <BottomSheetSharedComponent
+        visible={isColorSheetOpen}
+        onClose={() => setIsColorSheetOpen(false)}
+        header={
+          <BottomSheetHeaderSharedComponent
+            title="Select Color"
+            leadingIconName="close"
+            leadingAccessibilityLabel="Close"
+            onLeadingPress={() => setIsColorSheetOpen(false)}
+          />
+        }
+      >
+        <CreateCategoryScreenColorGridStaticComponent
+          selectedColor={selectedColor}
+          onSelect={(color) => {
+            setSelectedColor(color);
+            setIsColorSheetOpen(false);
+          }}
+        />
+      </BottomSheetSharedComponent>
+
+      {/* Shell only this pass -- header + search bar, nothing else. No
+          results list or tap-to-add logic yet -- see grilling session
+          2026-11-02. */}
+      <BottomSheetSharedComponent
+        visible={isMemberSheetOpen}
+        onClose={() => setIsMemberSheetOpen(false)}
+        header={
+          <BottomSheetHeaderSharedComponent
+            title={CreateCategoryScreenCON.ADD_MEMBER_SHEET_TITLE}
+            leadingIconName="close"
+            leadingAccessibilityLabel="Close"
+            onLeadingPress={() => setIsMemberSheetOpen(false)}
+          />
+        }
+      >
+        <TextInputSharedComponent
+          placeholder={CreateCategoryScreenCON.SEARCH_MEMBER_PLACEHOLDER}
+          value={memberSearchQuery}
+          onChangeText={setMemberSearchQuery}
+          leftAdornment={<Ionicons name="search" size={18} color={ColorFactoryCON.SUBTLE_TEXT} />}
+          containerStyle={{ padding: EdgeInsetsCON.LG }}
+          accessibilityLabel="Search members"
+        />
+      </BottomSheetSharedComponent>
+
+      <ConfirmationDialogSharedComponent
+        visible={isDiscardDialogOpen}
+        onClose={() => setIsDiscardDialogOpen(false)}
+        onDismissed={handleDialogDismissed}
+      >
+        <View style={{ gap: EdgeInsetsCON.SM }}>
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "700",
+              color: ColorFactoryCON.INK,
+            }}
+          >
+            {CreateCategoryScreenCON.DISCARD_DIALOG_TITLE}
+          </Text>
+          <Text
+            style={{
+              fontSize: 14,
+              color: ColorFactoryCON.SUBTLE_TEXT,
+              marginBottom: EdgeInsetsCON.MD,
+            }}
+          >
+            {CreateCategoryScreenCON.DISCARD_DIALOG_MESSAGE}
+          </Text>
+          <View style={{ gap: EdgeInsetsCON.SM }}>
+            <SecondaryActionButtonSharedComponent
+              label={CreateCategoryScreenCON.DISCARD_DIALOG_CONFIRM_LABEL}
+              width="full"
+              backgroundColor={CreateCategoryScreenCON.VALIDATION_ERROR_RED}
+              borderColor={CreateCategoryScreenCON.VALIDATION_ERROR_RED}
+              textColor="#FFFFFF"
+              onPress={handleConfirmDiscard}
+            />
+            <SecondaryActionButtonSharedComponent
+              label={CreateCategoryScreenCON.DISCARD_DIALOG_CANCEL_LABEL}
+              width="full"
+              onPress={() => setIsDiscardDialogOpen(false)}
+            />
+          </View>
+        </View>
+      </ConfirmationDialogSharedComponent>
     </View>
   );
 }
