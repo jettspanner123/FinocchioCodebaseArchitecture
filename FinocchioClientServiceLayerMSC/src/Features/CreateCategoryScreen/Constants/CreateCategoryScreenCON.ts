@@ -112,5 +112,5 @@ export default class CreateCategoryScreenCON {
   public static readonly DISCARD_DIALOG_TITLE: string = "Discard Category?";
   public static readonly DISCARD_DIALOG_MESSAGE: string = "You have unsaved changes that will be lost.";
   public static readonly DISCARD_DIALOG_CONFIRM_LABEL: string = "Discard";
-  public static readonly DISCARD_DIALOG_CANCEL_LABEL: string = "Keep Editing";
+  public static readonly DISCARD_DIALOG_CANCEL_LABEL: string = "Continue";
 }
