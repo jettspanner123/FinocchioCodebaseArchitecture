@@ -173,31 +173,30 @@ export default function DashboardScreenCategoryCardStaticComponent({
                   : "Personal category"
               }
             >
-              {category.members && category.members.length > 0 ? (
-                category.members.slice(0, 3).map((member, memberIdx) => (
-                  <View
-                    key={member.id}
-                    className="w-14 h-14 rounded-full items-center justify-center"
-                    style={{
-                      backgroundColor: "#FFFFFF",
-                      marginLeft: memberIdx > 0 ? -16 : 0,
-                      borderWidth: 1,
-                      borderColor: style.backgroundColor,
-                    }}
-                  >
-                    <Text style={{ fontSize: 16, fontWeight: "700", color: style.textColor }}>
-                      {member.avatarInitials}
-                    </Text>
-                  </View>
-                ))
-              ) : (
-                <View
-                  className="w-14 h-14 rounded-full items-center justify-center"
-                  style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "rgba(0, 0, 0, 0.15)" }}
-                >
-                  <Text style={{ fontSize: 16, fontWeight: "700", color: style.textColor }}>V</Text>
-                </View>
-              )}
+              {/* No fallback placeholder avatar when there are no members --
+                  it used to render a hardcoded "V" circle, which read as
+                  leftover test data rather than a real category state (see
+                  grilling session 2026-11-02). Personal categories (and any
+                  Shared category with nobody added yet) simply show no
+                  avatar row. */}
+              {category.members && category.members.length > 0
+                ? category.members.slice(0, 3).map((member, memberIdx) => (
+                    <View
+                      key={member.id}
+                      className="w-14 h-14 rounded-full items-center justify-center"
+                      style={{
+                        backgroundColor: "#FFFFFF",
+                        marginLeft: memberIdx > 0 ? -16 : 0,
+                        borderWidth: 1,
+                        borderColor: style.backgroundColor,
+                      }}
+                    >
+                      <Text style={{ fontSize: 16, fontWeight: "700", color: style.textColor }}>
+                        {member.avatarInitials}
+                      </Text>
+                    </View>
+                  ))
+                : null}
             </View>
 
             <Pressable hitSlop={8} accessibilityRole="button" accessibilityLabel="More options">
