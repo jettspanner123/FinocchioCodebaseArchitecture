@@ -5,6 +5,7 @@ export enum CreateCategoryScreenStepEnum {
   NAME_AND_APPEARANCE,
   BUDGET,
   TYPE_AND_MEMBERS,
+  REVIEW,
 }
 
 // Budget reset period -- explicit enum, not an arbitrary interval. Order
