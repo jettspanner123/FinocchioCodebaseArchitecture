@@ -1,8 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import Animated from "react-native-reanimated";
 
+import SelectableInputRowSharedComponent from "@/Components/Shared/SelectableInputRowSharedComponent";
+import SubSectionSharedComponent from "@/Components/Shared/SubSectionSharedComponent";
 import TextInputSharedComponent from "@/Components/Shared/TextInputSharedComponent";
 import ColorFactoryCON from "@/Constants/ColorFactoryCON";
 import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
@@ -18,6 +20,10 @@ interface CreateCategoryScreenNameAndAppearanceStepStaticComponentProps {
   selectedIconName: keyof typeof Ionicons.glyphMap | null;
   isIconInvalid: boolean;
   iconAnimatedStyle: ShakeAnimationHookResult["animatedStyle"];
+  onOpenColorPicker: () => void;
+  selectedColor: string | null;
+  isColorInvalid: boolean;
+  colorAnimatedStyle: ShakeAnimationHookResult["animatedStyle"];
 }
 
 // e.g. "fast-food" -> "Fast Food"
@@ -28,12 +34,12 @@ export function formatIconLabel(iconName: string): string {
     .join(" ");
 }
 
-// Name and selected icon are fully controlled from CreateCategoryScreenController
-// -- the Continue button's validation (empty name / no icon) lives there, and
-// it owns the useShakeAnimationHook instance driving each field's
-// nameAnimatedStyle/iconAnimatedStyle, so this component only renders what
-// it's told. Color is intentionally skipped entirely for this pass, per
-// explicit instruction.
+// Name, icon, and color are fully controlled from CreateCategoryScreenController
+// -- the Continue button's validation (empty name / no icon / no color) lives
+// there, and it owns the useShakeAnimationHook instance driving each field's
+// animated style, so this component only renders what it's told. Icon and
+// color both use SelectableInputRowSharedComponent since they're structurally
+// identical "tap to open a picker" rows -- see grilling session 2026-11-03.
 export default function CreateCategoryScreenNameAndAppearanceStepStaticComponent({
   name,
   onChangeName,
@@ -43,6 +49,10 @@ export default function CreateCategoryScreenNameAndAppearanceStepStaticComponent
   selectedIconName,
   isIconInvalid,
   iconAnimatedStyle,
+  onOpenColorPicker,
+  selectedColor,
+  isColorInvalid,
+  colorAnimatedStyle,
 }: CreateCategoryScreenNameAndAppearanceStepStaticComponentProps): React.JSX.Element {
   return (
     <View style={{ flex: 1 }}>
@@ -72,38 +82,24 @@ export default function CreateCategoryScreenNameAndAppearanceStepStaticComponent
         ) : null}
       </Animated.View>
 
-      <Animated.View style={[{ marginTop: EdgeInsetsCON.LG }, iconAnimatedStyle]}>
-        <Pressable
+      <SubSectionSharedComponent text={CreateCategoryScreenCON.APPEARANCE_SECTION_HEADING} />
+
+      <Animated.View style={iconAnimatedStyle}>
+        <SelectableInputRowSharedComponent
           onPress={onOpenIconPicker}
-          accessibilityRole="button"
           accessibilityLabel="Select icon"
-          className="flex-row items-center justify-between"
-          style={{
-            height: 56,
-            borderWidth: 1,
-            borderColor: isIconInvalid ? CreateCategoryScreenCON.VALIDATION_ERROR_RED : "rgba(0, 0, 0, 0.15)",
-            borderRadius: 9999,
-            paddingHorizontal: EdgeInsetsCON.LG,
-            backgroundColor: "#FFFFFF",
-          }}
-        >
-          {selectedIconName ? (
-            <View className="flex-row items-center" style={{ gap: EdgeInsetsCON.SM }}>
-              <Ionicons name={selectedIconName} size={20} color={ColorFactoryCON.INK} />
-              <Text style={{ color: ColorFactoryCON.INK, fontSize: 16 }}>{formatIconLabel(selectedIconName)}</Text>
-            </View>
-          ) : (
-            <Text
-              style={{
-                color: isIconInvalid ? CreateCategoryScreenCON.VALIDATION_ERROR_RED : ColorFactoryCON.SUBTLE_TEXT,
-                fontSize: 16,
-              }}
-            >
-              Select an icon
-            </Text>
-          )}
-          <Ionicons name="chevron-forward" size={18} color={ColorFactoryCON.SUBTLE_TEXT} />
-        </Pressable>
+          placeholder="Select an icon"
+          isInvalid={isIconInvalid}
+          invalidColor={CreateCategoryScreenCON.VALIDATION_ERROR_RED}
+          selectedContent={
+            selectedIconName ? (
+              <View className="flex-row items-center" style={{ gap: EdgeInsetsCON.SM }}>
+                <Ionicons name={selectedIconName} size={20} color={ColorFactoryCON.INK} />
+                <Text style={{ color: ColorFactoryCON.INK, fontSize: 16 }}>{formatIconLabel(selectedIconName)}</Text>
+              </View>
+            ) : undefined
+          }
+        />
         {isIconInvalid ? (
           <Text
             style={{
@@ -114,6 +110,31 @@ export default function CreateCategoryScreenNameAndAppearanceStepStaticComponent
             }}
           >
             {CreateCategoryScreenCON.ICON_REQUIRED_ERROR}
+          </Text>
+        ) : null}
+      </Animated.View>
+
+      <Animated.View style={[{ marginTop: EdgeInsetsCON.LG }, colorAnimatedStyle]}>
+        <SelectableInputRowSharedComponent
+          onPress={onOpenColorPicker}
+          accessibilityLabel="Select color"
+          placeholder="Select a color"
+          isInvalid={isColorInvalid}
+          invalidColor={CreateCategoryScreenCON.VALIDATION_ERROR_RED}
+          selectedContent={
+            selectedColor ? <View style={{ width: 24, height: 24, borderRadius: 9999, backgroundColor: selectedColor }} /> : undefined
+          }
+        />
+        {isColorInvalid ? (
+          <Text
+            style={{
+              color: CreateCategoryScreenCON.VALIDATION_ERROR_RED,
+              fontSize: 13,
+              marginTop: EdgeInsetsCON.XS,
+              paddingHorizontal: EdgeInsetsCON.LG,
+            }}
+          >
+            {CreateCategoryScreenCON.COLOR_REQUIRED_ERROR}
           </Text>
         ) : null}
       </Animated.View>
