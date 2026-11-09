@@ -71,6 +71,9 @@ export default class DashboardScreenCON {
   public static readonly ADD_CARD_TITLE: string = "Create Category";
   public static readonly ADD_CARD_SUBTITLE: string = "Set up a personal or shared budget";
   public static readonly ADD_CARD_BACKGROUND_COLOR: string = "#1C1C28";
+  public static readonly ADD_CARD_PRESSED_BACKGROUND_COLOR: string = "#2C2C3E";
+  public static readonly ADD_CARD_PRESS_IN_DURATION: number = 100;
+  public static readonly ADD_CARD_PRESS_OUT_DURATION: number = 200;
   // Deliberately its own constant, not CATEGORY_CARD_HEIGHT -- this card isn't
   // part of the pinned stack sizing math, so growing it doesn't inflate every
   // category card too.

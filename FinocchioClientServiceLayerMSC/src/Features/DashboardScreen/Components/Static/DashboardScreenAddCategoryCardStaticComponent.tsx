@@ -1,11 +1,21 @@
 import {Ionicons} from "@expo/vector-icons";
 import React from "react";
 import {Pressable, Text, View, useWindowDimensions} from "react-native";
-import Animated, {Extrapolation, interpolate, useAnimatedStyle, type SharedValue} from "react-native-reanimated";
+import Animated, {
+    Extrapolation,
+    interpolate,
+    interpolateColor,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+    type SharedValue,
+} from "react-native-reanimated";
 
 import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
 import DashboardScreenCON from "@/Features/DashboardScreen/Constants/DashboardScreenCON";
 import ApplicationPhysicalFeedback from "@/Services/ApplicationPhysicalFeedback";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface DashboardScreenAddCategoryCardStaticComponentProps {
     scrollY: SharedValue<number>;
@@ -29,12 +39,23 @@ export default function DashboardScreenAddCategoryCardStaticComponent({
     // DashboardScreenCON property must never be read directly inside a
     // useAnimatedStyle callback.
     const slideAwayEndProgress = DashboardScreenCON.EXPAND_SLIDE_AWAY_END_PROGRESS;
+    const restingBackgroundColor = DashboardScreenCON.ADD_CARD_BACKGROUND_COLOR;
+    const pressedBackgroundColor = DashboardScreenCON.ADD_CARD_PRESSED_BACKGROUND_COLOR;
+    const pressInDuration = DashboardScreenCON.ADD_CARD_PRESS_IN_DURATION;
+    const pressOutDuration = DashboardScreenCON.ADD_CARD_PRESS_OUT_DURATION;
+
+    const pressProgress = useSharedValue(0);
 
     const handlePressIn = (): void => {
         if (isSequenceActive) {
             return;
         }
         void ApplicationPhysicalFeedback.current.haptic.triggerHaptic();
+        pressProgress.value = withTiming(1, { duration: pressInDuration });
+    };
+
+    const handlePressOut = (): void => {
+        pressProgress.value = withTiming(0, { duration: pressOutDuration });
     };
 
     const handlePress = (): void => {
@@ -63,6 +84,14 @@ export default function DashboardScreenAddCategoryCardStaticComponent({
         };
     });
 
+    const cardBackgroundAnimatedStyle = useAnimatedStyle(() => ({
+        backgroundColor: interpolateColor(
+            pressProgress.value,
+            [0, 1],
+            [restingBackgroundColor, pressedBackgroundColor],
+        ),
+    }));
+
     return (
         <Animated.View
             style={[
@@ -77,23 +106,26 @@ export default function DashboardScreenAddCategoryCardStaticComponent({
                 animatedStyle,
             ]}
         >
-            <Pressable
+            <AnimatedPressable
                 onPress={handlePress}
                 onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
                 disabled={isSequenceActive}
                 accessibilityRole="button"
                 accessibilityLabel={DashboardScreenCON.ADD_CARD_TITLE}
-                style={{
-                    flex: 1,
-                    borderRadius: 50,
-                    borderWidth: 1,
-                    borderColor: "rgba(255, 255, 255, 0.12)",
-                    backgroundColor: DashboardScreenCON.ADD_CARD_BACKGROUND_COLOR,
-                    padding: EdgeInsetsCON.LG,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    ...DashboardScreenCON.CATEGORY_CARD_SHADOW_STYLE,
-                }}
+                style={[
+                    {
+                        flex: 1,
+                        borderRadius: 50,
+                        borderWidth: 1,
+                        borderColor: "rgba(255, 255, 255, 0.12)",
+                        padding: EdgeInsetsCON.LG,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        ...DashboardScreenCON.CATEGORY_CARD_SHADOW_STYLE,
+                    },
+                    cardBackgroundAnimatedStyle,
+                ]}
             >
                 <View
                     className="w-16 h-16 rounded-full items-center justify-center mb-4"
@@ -127,7 +159,7 @@ export default function DashboardScreenAddCategoryCardStaticComponent({
                 >
                     {DashboardScreenCON.ADD_CARD_SUBTITLE}
                 </Text>
-            </Pressable>
+            </AnimatedPressable>
         </Animated.View>
     );
 }
