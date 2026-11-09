@@ -1,20 +1,38 @@
 import { create } from "zustand";
 
 import type ApplicationBaselineColorStateStoreInterface from "./Interface/ApplicationBaselineColorStateStoreInterface";
-import type { ApplicationColorPaletteType } from "./Interface/ApplicationBaselineColorStateStoreInterface";
+import type { ApplicationColorPaletteType, ResolvedThemeType } from "./Interface/ApplicationBaselineColorStateStoreInterface";
 
 // Colors estimated by eye from the first Dashboard design mockup
 // (download.jpg, 2026-10-27) -- not exact brand/design-spec values. Replace
-// with real hex codes if/when a design spec provides them. Dark palette is a
-// placeholder copy of light until real dark-mode values exist (ARCHITECTURE.md
-// requires both light and dark from v1, but this mockup only showed one).
+// with real hex codes if/when a design spec provides them.
+//
+// SURFACE/SURFACE_RAISED/OVERLAY/INK/SUBTLE_TEXT values below are explicit
+// user-provided decisions from the screen-by-screen color review (grilling
+// session 2026-11-10, Settings bottom sheet), matching Apple HIG system
+// colors (systemGroupedBackground/systemBackground/systemGray) -- not
+// estimates. ACCENT (Apple's own system blue) and BORDER_SUBTLE were left to
+// my judgment, chosen to match that same convention. Category colors
+// (CARD_*) are deliberately identical across both palettes -- they're
+// identity colors, not theme-dependent surface colors (THEME_SYSTEM_PRD.md §3
+// decision 6).
 const LIGHT_PALETTE: ApplicationColorPaletteType = {
   BACKGROUND: "#F3EFFB",
-  INK: "#1C1C28",
-  // Changed from #8A8A99 (2026-11-01, CREATE_CATEGORY_IMPROVEMENTS_PRD.md #1):
-  // the old value was 3.40:1 on white / 3.00:1 on BACKGROUND, below the 4.5:1
-  // minimum for text under 18pt. #6B6B7A verified at 4.62:1 / 5.23:1.
-  SUBTLE_TEXT: "#6B6B7A",
+  INK: "#000000",
+  SUBTLE_TEXT: "#8A8A8E",
+  // "Page" level inside a sheet (iOS systemGroupedBackground) -- SURFACE
+  // (below) is the card sitting ON TOP of this, not the other way around.
+  OVERLAY: "#F2F2F7",
+  // Card/content level -- iOS systemBackground. Intentionally "louder"
+  // (pure white) than OVERLAY's muted gray, matching the real iOS Settings
+  // app's own grouped-table visual hierarchy.
+  SURFACE: "#FFFFFF",
+  // Raised chip/button background -- reads as "lighter than SURFACE" even
+  // where SURFACE is already pure white (can't literally exceed white).
+  SURFACE_RAISED: "#FFFFFF",
+  ACCENT: "#007AFF",
+  BORDER_SUBTLE: "rgba(0, 0, 0, 0.08)",
+  SCRIM: "#000000",
   // Exact category colors provided 2026-10-28 (replacing the earlier
   // by-eye-estimated mockup colors). All four _TEXT entries are now the same
   // INK value -- every card uses black text/icons per that update, kept as
@@ -30,12 +48,30 @@ const LIGHT_PALETTE: ApplicationColorPaletteType = {
   CARD_FOOD_TEXT: "#1C1C28",
 };
 
-const DARK_PALETTE: ApplicationColorPaletteType = { ...LIGHT_PALETTE };
+const DARK_PALETTE: ApplicationColorPaletteType = {
+  ...LIGHT_PALETTE,
+  BACKGROUND: "#17171C",
+  INK: "#FFFFFF",
+  SUBTLE_TEXT: "#989899",
+  OVERLAY: "#1C1C1E",
+  SURFACE: "#000000",
+  SURFACE_RAISED: "#2C2C2E",
+  ACCENT: "#0A84FF",
+  BORDER_SUBTLE: "rgba(255, 255, 255, 0.12)",
+};
+
+function resolvePalette(resolvedTheme: ResolvedThemeType): ApplicationColorPaletteType {
+  return resolvedTheme === "dark" ? DARK_PALETTE : LIGHT_PALETTE;
+}
 
 const useApplicationBaselineColorStateStore = create<ApplicationBaselineColorStateStoreInterface>((set) => ({
-  theme: "light",
+  themePreference: "system",
+  resolvedTheme: "light",
   colors: LIGHT_PALETTE,
-  setTheme: (theme) => set({ theme, colors: theme === "dark" ? DARK_PALETTE : LIGHT_PALETTE }),
+  setThemePreference: (preference, systemScheme) => {
+    const resolvedTheme = preference === "system" ? systemScheme : preference;
+    set({ themePreference: preference, resolvedTheme, colors: resolvePalette(resolvedTheme) });
+  },
 }));
 
 export default useApplicationBaselineColorStateStore;

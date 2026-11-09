@@ -17,6 +17,30 @@ export default class ColorFactoryCON {
     return useApplicationBaselineColorStateStore.getState().colors.SUBTLE_TEXT;
   }
 
+  public static get SURFACE(): string {
+    return useApplicationBaselineColorStateStore.getState().colors.SURFACE;
+  }
+
+  public static get OVERLAY(): string {
+    return useApplicationBaselineColorStateStore.getState().colors.OVERLAY;
+  }
+
+  public static get SURFACE_RAISED(): string {
+    return useApplicationBaselineColorStateStore.getState().colors.SURFACE_RAISED;
+  }
+
+  public static get ACCENT(): string {
+    return useApplicationBaselineColorStateStore.getState().colors.ACCENT;
+  }
+
+  public static get BORDER_SUBTLE(): string {
+    return useApplicationBaselineColorStateStore.getState().colors.BORDER_SUBTLE;
+  }
+
+  public static get SCRIM(): string {
+    return useApplicationBaselineColorStateStore.getState().colors.SCRIM;
+  }
+
   public static get CARD_GAMES(): string {
     return useApplicationBaselineColorStateStore.getState().colors.CARD_GAMES;
   }
