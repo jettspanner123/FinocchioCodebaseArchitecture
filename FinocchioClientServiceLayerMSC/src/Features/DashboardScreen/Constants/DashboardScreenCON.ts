@@ -95,4 +95,11 @@ export default class DashboardScreenCON {
   public static readonly EXPAND_SLIDE_AWAY_END_PROGRESS: number = 0.4;
   public static readonly EXPAND_CONTENT_FADE_END_PROGRESS: number = 0.25;
   public static readonly EXPAND_GROWTH_START_PROGRESS: number = 0.3;
+
+  // Settings Appearance & Theme Selector
+  public static readonly SETTINGS_APPEARANCE_TITLE: string = "Appearance";
+  public static readonly SETTINGS_APPEARANCE_SUBTITLE: string = "Customize how Finocchio looks on your device";
+  public static readonly THEME_ACCENT_COLOR: string = "#7C3AED";
+  public static readonly THEME_CARD_LIGHT_BACKGROUND: string = "#ededef";
+  public static readonly THEME_CARD_DARK_BACKGROUND: string = "#333335";
 }
