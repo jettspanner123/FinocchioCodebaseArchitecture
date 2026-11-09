@@ -22,6 +22,8 @@ import Animated, {
 import ApplicationRouteCON from "@/Constants/ApplicationRouteCON";
 import ColorFactoryCON from "@/Constants/ColorFactoryCON";
 import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
+import BottomSheetHeaderSharedComponent from "@/Components/Shared/BottomSheetHeaderSharedComponent";
+import BottomSheetSharedComponent from "@/Components/Shared/BottomSheetSharedComponent";
 import DashboardScreenAddCategoryCardStaticComponent from "@/Features/DashboardScreen/Components/Static/DashboardScreenAddCategoryCardStaticComponent";
 import DashboardScreenCategoryCardStaticComponent from "@/Features/DashboardScreen/Components/Static/DashboardScreenCategoryCardStaticComponent";
 import DashboardScreenCategoryExpandOverlayStaticComponent from "@/Features/DashboardScreen/Components/Static/DashboardScreenCategoryExpandOverlayStaticComponent";
@@ -32,6 +34,8 @@ import DashboardScreenTwinActionButtonsSectionComponent
   from "@/Features/DashboardScreen/Components/Sections/DashboardScreenTwinActionButtonsSectionComponent";
 import DashboardScreenHeaderSectionComponent
   from "@/Features/DashboardScreen/Components/Sections/DashboardScreenHeaderSectionComponent";
+import DashboardScreenSettingsThemeSelectorStaticComponent
+  from "@/Features/DashboardScreen/Components/Static/DashboardScreenSettingsThemeSelectorStaticComponent";
 
 // Top bar elements (avatars, +, filter dropdown) are static placeholders
 // for this design-system pass, not wired to navigation.
@@ -103,6 +107,9 @@ export default function DashboardScreenController(): React.JSX.Element {
     number | null
   >(null);
 
+  const [isProfileSheetOpen, setIsProfileSheetOpen] = useState(false);
+  const [isSettingsSheetOpen, setIsSettingsSheetOpen] = useState(false);
+
   const resetSequence = (): void => {
     setIsSequenceActive(false);
     setSelectedCategoryIndex(null);
@@ -170,10 +177,13 @@ export default function DashboardScreenController(): React.JSX.Element {
       <Animated.View
         style={[{ paddingTop: EdgeInsetsCON.XXL }, headerAnimatedStyle]}
       >
+        <DashboardScreenHeaderSectionComponent
+          onProfilePress={() => setIsProfileSheetOpen(true)}
+          onSettingsPress={() => setIsSettingsSheetOpen(true)}
+          disabled={isSequenceActive}
+        />
 
-       <DashboardScreenHeaderSectionComponent />
-
-       <DashboardScreenTwinActionButtonsSectionComponent />
+        <DashboardScreenTwinActionButtonsSectionComponent />
       </Animated.View>
 
       <View style={{ flex: 1 }} onLayout={onStackAreaLayout}>
@@ -223,6 +233,42 @@ export default function DashboardScreenController(): React.JSX.Element {
           onPress={handleReverseTap}
         />
       ) : null}
+
+      <BottomSheetSharedComponent
+        visible={isProfileSheetOpen}
+        onClose={() => setIsProfileSheetOpen(false)}
+        fullHeight
+        header={
+          <BottomSheetHeaderSharedComponent
+            title={DashboardScreenCON.PROFILE_SHEET_TITLE}
+            leadingIconName="close"
+            leadingAccessibilityLabel="Close"
+            onLeadingPress={() => setIsProfileSheetOpen(false)}
+          />
+        }
+      >
+        <View style={{ padding: EdgeInsetsCON.LG }}>
+          <Text style={{ color: ColorFactoryCON.SUBTLE_TEXT, fontSize: 16 }}>
+            {DashboardScreenCON.PROFILE_SHEET_PLACEHOLDER}
+          </Text>
+        </View>
+      </BottomSheetSharedComponent>
+
+      <BottomSheetSharedComponent
+        visible={isSettingsSheetOpen}
+        onClose={() => setIsSettingsSheetOpen(false)}
+        fullHeight
+        header={
+          <BottomSheetHeaderSharedComponent
+            title={DashboardScreenCON.SETTINGS_SHEET_TITLE}
+            leadingIconName="close"
+            leadingAccessibilityLabel="Close"
+            onLeadingPress={() => setIsSettingsSheetOpen(false)}
+          />
+        }
+      >
+        <DashboardScreenSettingsThemeSelectorStaticComponent />
+      </BottomSheetSharedComponent>
     </View>
   );
 }

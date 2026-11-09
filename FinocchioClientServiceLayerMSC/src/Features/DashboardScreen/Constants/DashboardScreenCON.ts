@@ -96,6 +96,12 @@ export default class DashboardScreenCON {
   public static readonly EXPAND_CONTENT_FADE_END_PROGRESS: number = 0.25;
   public static readonly EXPAND_GROWTH_START_PROGRESS: number = 0.3;
 
+  // Profile & Settings Bottom Sheets
+  public static readonly PROFILE_SHEET_TITLE: string = "Profile";
+  public static readonly SETTINGS_SHEET_TITLE: string = "Settings";
+  public static readonly PROFILE_SHEET_PLACEHOLDER: string = "Profile settings and details will appear here.";
+  public static readonly SETTINGS_SHEET_PLACEHOLDER: string = "Application preferences and settings will appear here.";
+
   // Settings Appearance & Theme Selector
   public static readonly SETTINGS_APPEARANCE_TITLE: string = "Appearance";
   public static readonly SETTINGS_APPEARANCE_SUBTITLE: string = "Customize how Finocchio looks on your device";
