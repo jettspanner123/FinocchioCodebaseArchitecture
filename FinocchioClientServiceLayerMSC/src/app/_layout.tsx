@@ -8,6 +8,8 @@ import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import ApplicationThemeSyncComponent from '@/Components/ApplicationThemeSyncComponent';
+
 // TODO: Google Sign-In is commented out -- it's a real native module
 // (TurboModuleRegistry lookup happens at import time, not when called), which
 // doesn't exist in Expo Go and crashes the app immediately on load. Re-enable
@@ -49,7 +51,9 @@ export default function RootLayout(): React.JSX.Element | null {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <Stack screenOptions={{ headerShown: false }} />
+          <ApplicationThemeSyncComponent>
+            <Stack screenOptions={{ headerShown: false }} />
+          </ApplicationThemeSyncComponent>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
