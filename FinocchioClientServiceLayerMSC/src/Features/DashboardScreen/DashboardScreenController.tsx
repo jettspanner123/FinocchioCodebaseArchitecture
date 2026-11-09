@@ -30,6 +30,7 @@ import DashboardScreenCategoryExpandOverlayStaticComponent from "@/Features/Dash
 import DashboardScreenCON from "@/Features/DashboardScreen/Constants/DashboardScreenCON";
 import type { DashboardMeasuredRectModel } from "@/Features/DashboardScreen/Models/DashboardScreenModel";
 import DashboardScreenService from "@/Features/DashboardScreen/Services/DashboardScreenService";
+import useThemeReactivityHook from "@/Hooks/useThemeReactivityHook";
 import DashboardScreenTwinActionButtonsSectionComponent
   from "@/Features/DashboardScreen/Components/Sections/DashboardScreenTwinActionButtonsSectionComponent";
 import DashboardScreenHeaderSectionComponent
@@ -59,6 +60,7 @@ import DashboardScreenSettingsThemeSelectorStaticComponent
 // animated via a single spring per direction -- see the PRD for why a single
 // continuous progress value is used instead of separately-timed animations.
 export default function DashboardScreenController(): React.JSX.Element {
+  useThemeReactivityHook();
   const categories = DashboardScreenService.current.getCategories();
   const cardStep = DashboardScreenService.current.getCategoryCardStep();
   const { height: screenHeight } = useWindowDimensions();

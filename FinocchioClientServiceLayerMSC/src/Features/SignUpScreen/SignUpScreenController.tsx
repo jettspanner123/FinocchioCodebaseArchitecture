@@ -8,9 +8,11 @@ import SignUpScreenFormStaticComponent from "@/Features/SignUpScreen/Components/
 import SignUpScreenCON from "@/Features/SignUpScreen/Constants/SignUpScreenCON";
 import { signUpScreenFormResolver, type SignUpScreenFormDataModel } from "@/Features/SignUpScreen/Models/SignUpScreenModel";
 import SignUpScreenService from "@/Features/SignUpScreen/Services/SignUpScreenService";
+import useThemeReactivityHook from "@/Hooks/useThemeReactivityHook";
 import TanstackQueryClientService from "@/Services/TanstackQueryClientService";
 
 export default function SignUpScreenController(): React.JSX.Element {
+  useThemeReactivityHook();
   const form = useForm<SignUpScreenFormDataModel>({
     resolver: signUpScreenFormResolver,
     defaultValues: { email: "", password: "", confirmPassword: "" },

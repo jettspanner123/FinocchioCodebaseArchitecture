@@ -8,6 +8,7 @@ import LoginScreenFormStaticComponent from "@/Features/LoginScreen/Components/st
 import LoginScreenCON from "@/Features/LoginScreen/Constants/LoginScreenCON";
 import { loginScreenFormResolver, type LoginScreenFormDataModel } from "@/Features/LoginScreen/Models/LoginScreenModel";
 import LoginScreenService from "@/Features/LoginScreen/Services/LoginScreenService";
+import useThemeReactivityHook from "@/Hooks/useThemeReactivityHook";
 // TODO: Google Sign-In is commented out -- ApplicationGoogleAuthService imports
 // a real native module that doesn't exist in Expo Go and crashes the app on
 // load. Re-enable once testing moves to the custom dev client.
@@ -15,6 +16,7 @@ import LoginScreenService from "@/Features/LoginScreen/Services/LoginScreenServi
 import TanstackQueryClientService from "@/Services/TanstackQueryClientService";
 
 export default function LoginScreenController(): React.JSX.Element {
+  useThemeReactivityHook();
   const form = useForm<LoginScreenFormDataModel>({
     resolver: loginScreenFormResolver,
     defaultValues: { email: "", password: "" },

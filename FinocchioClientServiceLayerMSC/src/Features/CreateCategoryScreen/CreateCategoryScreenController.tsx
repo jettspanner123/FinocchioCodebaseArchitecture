@@ -28,6 +28,7 @@ import {
 } from "@/Features/CreateCategoryScreen/Models/CreateCategoryScreenModel";
 import type { DashboardCategoryMemberModel } from "@/Features/DashboardScreen/Models/DashboardScreenModel";
 import useShakeAnimationHook from "@/Hooks/useShakeAnimationHook";
+import useThemeReactivityHook from "@/Hooks/useThemeReactivityHook";
 
 const LAST_STEP = CreateCategoryScreenStepEnum.REVIEW;
 // Iconpicker's dismiss duration guess, matching the keyboard-sync row's own
@@ -41,6 +42,7 @@ const KEYBOARD_DISMISS_DURATION = 250;
 // BottomSheetHeaderSharedComponent as-is -- it was always generic, never
 // actually coupled to the sheet despite its name.
 export default function CreateCategoryScreenController(): React.JSX.Element {
+  useThemeReactivityHook();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const [currentStep, setCurrentStep] = useState<CreateCategoryScreenStepEnum>(
