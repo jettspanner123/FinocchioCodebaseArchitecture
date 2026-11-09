@@ -104,8 +104,4 @@ export default class DashboardScreenCON {
 
   // Settings Appearance & Theme Selector
   public static readonly SETTINGS_APPEARANCE_TITLE: string = "Appearance";
-  public static readonly SETTINGS_APPEARANCE_SUBTITLE: string = "Customize how Finocchio looks on your device";
-  public static readonly THEME_ACCENT_COLOR: string = "#7C3AED";
-  public static readonly THEME_CARD_LIGHT_BACKGROUND: string = "#ededef";
-  public static readonly THEME_CARD_DARK_BACKGROUND: string = "#333335";
 }

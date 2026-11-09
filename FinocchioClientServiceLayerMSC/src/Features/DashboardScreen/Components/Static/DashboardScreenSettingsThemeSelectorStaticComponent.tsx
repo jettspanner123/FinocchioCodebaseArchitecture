@@ -1,17 +1,19 @@
-import React, { useState } from "react";
-import { Pressable, Text, View, useWindowDimensions } from "react-native";
+import React from "react";
+import { Appearance, Pressable, Text, View, useWindowDimensions } from "react-native";
 import Animated, { LinearTransition } from "react-native-reanimated";
 
 import SubSectionSharedComponent from "@/Components/Shared/SubSectionSharedComponent";
 import ColorFactoryCON from "@/Constants/ColorFactoryCON";
 import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
+import ApplicationUserPreferenceCON from "@/Constants/ApplicationUserPreferenceCON";
 import DashboardScreenCON from "@/Features/DashboardScreen/Constants/DashboardScreenCON";
 import ApplicationPhysicalFeedback from "@/Services/ApplicationPhysicalFeedback";
-
-type ThemeOptionType = "light" | "dark" | "system";
+import ApplicationUserPreferenceService from "@/Services/ApplicationUserPreferenceService";
+import useApplicationBaselineColorStateStore from "@/Store/ApplicationBaselineColorStateStore";
+import type { ThemePreferenceType } from "@/Store/Interface/ApplicationBaselineColorStateStoreInterface";
 
 interface ThemeOptionItemModel {
-  id: ThemeOptionType;
+  id: ThemePreferenceType;
   label: string;
 }
 
@@ -149,7 +151,7 @@ function MockupContentRows({
   );
 }
 
-function ThemeMockupFrame({ optionId }: { optionId: ThemeOptionType }): React.JSX.Element {
+function ThemeMockupFrame({ optionId }: { optionId: ThemePreferenceType }): React.JSX.Element {
   if (optionId === "system") {
     return (
       <View style={{ flex: 1, position: "relative", borderRadius: 12, overflow: "hidden" }}>
@@ -220,13 +222,20 @@ function ThemeMockupFrame({ optionId }: { optionId: ThemeOptionType }): React.JS
 // SETTINGS_BOTTOM_SHEET_ELEMENTS_DC.html -- the header row (title + "{Theme}
 // Active" badge) and the per-card checkmark radio indicator were both
 // explicitly dropped, see grilling session 2026-11-09. Card chrome
-// (border/label colors) is mapped to this app's own THEME_ACCENT_COLOR/
-// ColorFactoryCON system instead of the HTML's own dark Material tokens --
-// those are an artifact of the design file being captured in dark mode, not a
-// deliberate instruction (see grilling session 2026-11-08, Q3). Purely
-// cosmetic selection state, not wired to a real app-wide theme switch (Q5).
+// (border/label colors) is mapped to this app's own ColorFactoryCON system
+// instead of the HTML's own dark Material tokens -- those are an artifact of
+// the design file being captured in dark mode, not a deliberate instruction
+// (see grilling session 2026-11-08, Q3). Now fully functional (THEME_SYSTEM_PRD.md):
+// selecting a theme here actually changes the app's colors and persists
+// across cold starts, see ApplicationThemeSyncComponent.
 export default function DashboardScreenSettingsThemeSelectorStaticComponent(): React.JSX.Element {
-  const [selectedTheme, setSelectedTheme] = useState<ThemeOptionType>("system");
+  // Real store state now, not local useState -- this IS the control surface
+  // for the theme system, so a direct hook subscription here is correct and
+  // expected (not a violation of ApplicationThemeSyncComponent's "don't
+  // migrate passive color-consumption call sites" principle), see
+  // THEME_SYSTEM_PRD.md §4.5.
+  const selectedTheme = useApplicationBaselineColorStateStore((state) => state.themePreference);
+  const setThemePreference = useApplicationBaselineColorStateStore((state) => state.setThemePreference);
 
   // Explicit pixel sizing, not aspectRatio -- matches every other card grid
   // in this app (Icon grid, Budget's 2x2, Type cards), none of which use
@@ -237,9 +246,11 @@ export default function DashboardScreenSettingsThemeSelectorStaticComponent(): R
   const cardHeight = cardWidth * MOCKUP_ASPECT_RATIO;
   const selectedIndex = THEME_OPTIONS.findIndex((option) => option.id === selectedTheme);
 
-  const handleSelectTheme = (theme: ThemeOptionType): void => {
+  const handleSelectTheme = (theme: ThemePreferenceType): void => {
     void ApplicationPhysicalFeedback.current.haptic.triggerHaptic();
-    setSelectedTheme(theme);
+    const systemScheme = Appearance.getColorScheme() === "dark" ? "dark" : "light";
+    setThemePreference(theme, systemScheme);
+    void ApplicationUserPreferenceService.current.setPreference(ApplicationUserPreferenceCON.THEME_PREFERENCE_KEY, theme);
   };
 
   return (
@@ -254,10 +265,10 @@ export default function DashboardScreenSettingsThemeSelectorStaticComponent(): R
 
       <View
         style={{
-          backgroundColor: ColorFactoryCON.BACKGROUND,
+          backgroundColor: ColorFactoryCON.SURFACE,
           borderRadius: 24,
           borderWidth: 1,
-          borderColor: "rgba(0, 0, 0, 0.06)",
+          borderColor: ColorFactoryCON.BORDER_SUBTLE,
           padding: EdgeInsetsCON.MD,
         }}
       >
@@ -277,7 +288,7 @@ export default function DashboardScreenSettingsThemeSelectorStaticComponent(): R
               width: cardWidth,
               height: cardHeight,
               borderRadius: MOCKUP_RADIUS,
-              backgroundColor: DashboardScreenCON.THEME_ACCENT_COLOR,
+              backgroundColor: ColorFactoryCON.ACCENT,
             }}
           />
 
@@ -312,7 +323,7 @@ export default function DashboardScreenSettingsThemeSelectorStaticComponent(): R
                       marginTop: EdgeInsetsCON.XS,
                       fontSize: 14,
                       fontWeight: isSelected ? "700" : "500",
-                      color: isSelected ? DashboardScreenCON.THEME_ACCENT_COLOR : ColorFactoryCON.SUBTLE_TEXT,
+                      color: isSelected ? ColorFactoryCON.ACCENT : ColorFactoryCON.SUBTLE_TEXT,
                     }}
                   >
                     {option.label}
