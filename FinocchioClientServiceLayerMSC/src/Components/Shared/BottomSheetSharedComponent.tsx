@@ -10,6 +10,8 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
+import ColorFactoryCON from "@/Constants/ColorFactoryCON";
+
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const BACKDROP_MAX_OPACITY = 0.35;
 
@@ -142,7 +144,7 @@ export default function BottomSheetSharedComponent({
     <>
       <AnimatedPressable
         style={[
-          { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "#000000" },
+          { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: ColorFactoryCON.SCRIM },
           backdropAnimatedStyle,
         ]}
         onPress={onClose}
@@ -160,7 +162,7 @@ export default function BottomSheetSharedComponent({
             bottom: 0,
             ...(fullHeight ? { height: screenHeight * 0.9 } : {}),
             maxHeight: screenHeight * 0.9,
-            backgroundColor: "#FFFFFF",
+            backgroundColor: ColorFactoryCON.OVERLAY,
             borderTopLeftRadius: 30,
             borderTopRightRadius: 30,
             overflow: "hidden",
