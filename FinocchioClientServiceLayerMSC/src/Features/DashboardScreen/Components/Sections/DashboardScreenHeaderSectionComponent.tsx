@@ -2,9 +2,36 @@ import { View, Text, Pressable } from "react-native";
 import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
 import DashboardScreenCON from "@/Features/DashboardScreen/Constants/DashboardScreenCON";
 import ColorFactoryCON from "@/Constants/ColorFactoryCON";
+import ApplicationPhysicalFeedback from "@/Services/ApplicationPhysicalFeedback";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function DashboardScreenHeaderSectionComponent() {
+interface DashboardScreenHeaderSectionComponentProps {
+    onProfilePress?: () => void;
+    onSettingsPress?: () => void;
+    disabled?: boolean;
+}
+
+export default function DashboardScreenHeaderSectionComponent({
+    onProfilePress,
+    onSettingsPress,
+    disabled = false,
+}: DashboardScreenHeaderSectionComponentProps) {
+    const handleProfilePress = (): void => {
+        if (disabled) {
+            return;
+        }
+        void ApplicationPhysicalFeedback.current.haptic.triggerHaptic();
+        onProfilePress?.();
+    };
+
+    const handleSettingsPress = (): void => {
+        if (disabled) {
+            return;
+        }
+        void ApplicationPhysicalFeedback.current.haptic.triggerHaptic();
+        onSettingsPress?.();
+    };
+
     return (
         <View
             className="flex-row items-center justify-between mt-8 px-2"
@@ -30,7 +57,9 @@ export default function DashboardScreenHeaderSectionComponent() {
                     className="w-14 h-14 rounded-full bg-white items-center justify-center"
                     style={{ borderWidth: 1, borderColor: "rgba(0, 0, 0, 0.15)" }}
                     accessibilityLabel="Profile"
-                    disabled
+                    accessibilityRole="button"
+                    disabled={disabled}
+                    onPress={handleProfilePress}
                 >
                     <Ionicons
                         name="person-outline"
@@ -42,7 +71,9 @@ export default function DashboardScreenHeaderSectionComponent() {
                     className="w-14 h-14 rounded-full bg-white items-center justify-center ml-2"
                     style={{ borderWidth: 1, borderColor: "rgba(0, 0, 0, 0.15)" }}
                     accessibilityLabel="Settings"
-                    disabled
+                    accessibilityRole="button"
+                    disabled={disabled}
+                    onPress={handleSettingsPress}
                 >
                     <Ionicons
                         name="settings-outline"
@@ -52,5 +83,5 @@ export default function DashboardScreenHeaderSectionComponent() {
                 </Pressable>
             </View>
         </View>
-    )
+    );
 }
