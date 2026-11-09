@@ -23,6 +23,7 @@ interface BottomSheetSharedComponentProps {
   // gesture at all, so it can scroll independently once content exceeds the
   // sheet's max height.
   children?: React.ReactNode;
+  fullHeight?: boolean;
 }
 
 // Own spring config, not borrowed from any feature's constants -- keeps this
@@ -48,6 +49,7 @@ export default function BottomSheetSharedComponent({
   onClose,
   header,
   children,
+  fullHeight = false,
 }: BottomSheetSharedComponentProps): React.JSX.Element | null {
   const { height: screenHeight } = useWindowDimensions();
   const [isMounted, setIsMounted] = useState(visible);
@@ -156,6 +158,7 @@ export default function BottomSheetSharedComponent({
             left: 0,
             right: 0,
             bottom: 0,
+            ...(fullHeight ? { height: screenHeight * 0.9 } : {}),
             maxHeight: screenHeight * 0.9,
             backgroundColor: "#FFFFFF",
             borderTopLeftRadius: 30,
@@ -168,7 +171,11 @@ export default function BottomSheetSharedComponent({
         <GestureDetector gesture={panGesture}>
           <View>{header}</View>
         </GestureDetector>
-        <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={{ flex: fullHeight ? 1 : undefined, flexShrink: fullHeight ? undefined : 1 }}
+          contentContainerStyle={fullHeight ? { flexGrow: 1 } : undefined}
+          showsVerticalScrollIndicator={false}
+        >
           {children}
         </ScrollView>
       </Animated.View>
