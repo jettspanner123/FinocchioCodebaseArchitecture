@@ -52,7 +52,7 @@ export const MOCK_DASHBOARD_CATEGORIES: DashboardCategoryModel[] = [
     transactionCount: 18,
     periodLabel: "Resets in 6 days",
     iconName: "home",
-    backgroundColor: "#E0C4F1",
+    backgroundColor: "#F45E4F",
     textColor: "#1C1C28",
     members: [
       { id: "m1", name: "Alex", avatarInitials: "A" },
@@ -69,7 +69,7 @@ export const MOCK_DASHBOARD_CATEGORIES: DashboardCategoryModel[] = [
     transactionCount: 4,
     periodLabel: "Resets in 6 days",
     iconName: "barbell",
-    backgroundColor: "#F4F5A8",
+    backgroundColor: "#FCCC5F",
     textColor: "#1C1C28",
   },
   {
@@ -81,7 +81,7 @@ export const MOCK_DASHBOARD_CATEGORIES: DashboardCategoryModel[] = [
     transactionCount: 24,
     periodLabel: "Resets in 6 days",
     iconName: "briefcase",
-    backgroundColor: "#C5CDF0",
+    backgroundColor: "#7477FF",
     textColor: "#1C1C28",
     members: [
       { id: "m4", name: "Mark", avatarInitials: "M" },
@@ -99,7 +99,7 @@ export const MOCK_DASHBOARD_CATEGORIES: DashboardCategoryModel[] = [
     transactionCount: 31,
     periodLabel: "Resets in 6 days",
     iconName: "restaurant",
-    backgroundColor: "#FFD6A5",
+    backgroundColor: "#BCF3FF",
     textColor: "#1C1C28",
   },
   {
@@ -111,7 +111,7 @@ export const MOCK_DASHBOARD_CATEGORIES: DashboardCategoryModel[] = [
     transactionCount: 3,
     periodLabel: "Resets in 6 days",
     iconName: "airplane",
-    backgroundColor: "#BFF0D4",
+    backgroundColor: "#C5D3CC",
     textColor: "#1C1C28",
     members: [
       { id: "m8", name: "Rohan", avatarInitials: "R" },

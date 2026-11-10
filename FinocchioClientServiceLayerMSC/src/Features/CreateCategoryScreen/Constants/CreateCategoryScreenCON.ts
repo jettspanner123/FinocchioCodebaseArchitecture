@@ -16,18 +16,17 @@ export default class CreateCategoryScreenCON {
     "shirt", "umbrella", "person", "people",
   ];
 
-  // Pre-approved palette for the color picker -- every color actually
-  // rendered anywhere in the app today (the 5 real mock category colors from
-  // DashboardScreenModel), excluding CREATE_BUTTON_GREEN_DARK (UI chrome, not
-  // a category identity color) -- see grilling session 2026-11-03. All 5
-  // already pair with ColorFactoryCON.INK as their text color in the real
-  // mock data, so no separate text-color picker is needed.
+  // Pre-approved palette for the color picker -- kept in exact lockstep with
+  // DashboardScreenModel's mock category colors (same 5 values, same order),
+  // updated together 2026-11-10 per explicit instruction. Category colors are
+  // identity colors, not theme-dependent -- no separate text-color picker is
+  // needed (see grilling session 2026-11-03/2026-11-10).
   public static readonly AVAILABLE_CATEGORY_COLORS: readonly string[] = [
-    "#E0C4F1",
-    "#F4F5A8",
-    "#C5CDF0",
-    "#FFD6A5",
-    "#BFF0D4",
+    "#F45E4F",
+    "#FCCC5F",
+    "#7477FF",
+    "#BCF3FF",
+    "#C5D3CC",
   ];
 
   public static readonly COLOR_SWATCH_BORDER_WIDTH: number = 1.5;
@@ -94,8 +93,10 @@ export default class CreateCategoryScreenCON {
   public static readonly FIRST_STEP_NEXT_BUTTON_LABEL: string = "Continue";
   public static readonly CREATE_BUTTON_LABEL: string = "Create";
 
-  // Matches the "Travel" category card's green exactly (DashboardScreenModel's
-  // MOCK_DASHBOARD_CATEGORIES), not a new color invented for this button.
+  // Originally matched the "Travel" category card's color exactly; Travel's
+  // own color changed 2026-11-10 (category palette update) and this button's
+  // accent was deliberately left as its own fixed brand color rather than
+  // following it.
   public static readonly CREATE_BUTTON_GREEN: string = "#BFF0D4";
   public static readonly CREATE_BUTTON_GREEN_DARK: string = "#123F36";
   // A lighter tint of CREATE_BUTTON_GREEN_DARK, for the border only -- icon
