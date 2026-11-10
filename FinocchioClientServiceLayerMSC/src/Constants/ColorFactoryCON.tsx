@@ -29,6 +29,10 @@ export default class ColorFactoryCON {
     return useApplicationBaselineColorStateStore.getState().colors.SURFACE_RAISED;
   }
 
+  public static get SURFACE_RAISED_ALT(): string {
+    return useApplicationBaselineColorStateStore.getState().colors.SURFACE_RAISED_ALT;
+  }
+
   public static get ACCENT(): string {
     return useApplicationBaselineColorStateStore.getState().colors.ACCENT;
   }

@@ -15,6 +15,11 @@ export interface ApplicationColorPaletteType {
   // used by SecondaryActionButtonSharedComponent's default background, see
   // grilling session 2026-11-10.
   SURFACE_RAISED: string;
+  // Distinct from SURFACE_RAISED, for a shape nested inside an
+  // already-SURFACE_RAISED element (e.g. an icon-circle inside a pill) where
+  // reusing SURFACE_RAISED again would make it invisible against its own
+  // parent, see grilling session 2026-11-10.
+  SURFACE_RAISED_ALT: string;
   OVERLAY: string;
   ACCENT: string;
   BORDER_SUBTLE: string;

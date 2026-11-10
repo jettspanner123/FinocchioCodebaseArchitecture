@@ -30,6 +30,7 @@ const LIGHT_PALETTE: ApplicationColorPaletteType = {
   // Raised chip/button background -- reads as "lighter than SURFACE" even
   // where SURFACE is already pure white (can't literally exceed white).
   SURFACE_RAISED: "#FFFFFF",
+  SURFACE_RAISED_ALT: "#E5E5EA",
   ACCENT: "#007AFF",
   BORDER_SUBTLE: "rgba(0, 0, 0, 0.08)",
   SCRIM: "#000000",
@@ -50,12 +51,13 @@ const LIGHT_PALETTE: ApplicationColorPaletteType = {
 
 const DARK_PALETTE: ApplicationColorPaletteType = {
   ...LIGHT_PALETTE,
-  BACKGROUND: "#17171C",
+  BACKGROUND: "#000000",
   INK: "#FFFFFF",
   SUBTLE_TEXT: "#989899",
   OVERLAY: "#1C1C1E",
   SURFACE: "#000000",
   SURFACE_RAISED: "#2C2C2E",
+  SURFACE_RAISED_ALT: "#3A3A3C",
   ACCENT: "#0A84FF",
   BORDER_SUBTLE: "rgba(255, 255, 255, 0.12)",
 };
