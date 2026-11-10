@@ -54,8 +54,8 @@ export default function DashboardScreenHeaderSectionComponent({
 
             <View className="flex-row items-center">
                 <Pressable
-                    className="w-14 h-14 rounded-full bg-white items-center justify-center"
-                    style={{ borderWidth: 1, borderColor: "rgba(0, 0, 0, 0.15)" }}
+                    className="w-14 h-14 rounded-full items-center justify-center"
+                    style={{ backgroundColor: ColorFactoryCON.SURFACE_RAISED, borderWidth: 1, borderColor: "rgba(0, 0, 0, 0.15)" }}
                     accessibilityLabel="Profile"
                     accessibilityRole="button"
                     disabled={disabled}
@@ -68,8 +68,8 @@ export default function DashboardScreenHeaderSectionComponent({
                     />
                 </Pressable>
                 <Pressable
-                    className="w-14 h-14 rounded-full bg-white items-center justify-center ml-2"
-                    style={{ borderWidth: 1, borderColor: "rgba(0, 0, 0, 0.15)" }}
+                    className="w-14 h-14 rounded-full items-center justify-center ml-2"
+                    style={{ backgroundColor: ColorFactoryCON.SURFACE_RAISED, borderWidth: 1, borderColor: "rgba(0, 0, 0, 0.15)" }}
                     accessibilityLabel="Settings"
                     accessibilityRole="button"
                     disabled={disabled}
