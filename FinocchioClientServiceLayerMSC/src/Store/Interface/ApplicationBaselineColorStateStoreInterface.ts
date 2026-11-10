@@ -23,6 +23,11 @@ export interface ApplicationColorPaletteType {
   OVERLAY: string;
   ACCENT: string;
   BORDER_SUBTLE: string;
+  // A more visible border for elements that need to read as clearly
+  // differentiated from their background (category cards) -- deliberately
+  // its own token, not a bumped BORDER_SUBTLE, since BORDER_SUBTLE stays
+  // subtle for buttons/sheets elsewhere, see grilling session 2026-11-10.
+  BORDER_STRONG: string;
   // Bottom-sheet/modal dimming backdrop -- deliberately identical across both
   // palettes (a black scrim is a universal convention, not theme-dependent),
   // same precedent as CARD_GAMES etc. being centralized despite not varying

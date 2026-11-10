@@ -33,6 +33,9 @@ const LIGHT_PALETTE: ApplicationColorPaletteType = {
   SURFACE_RAISED_ALT: "#E5E5EA",
   ACCENT: "#007AFF",
   BORDER_SUBTLE: "rgba(0, 0, 0, 0.08)",
+  // Theme-aware again (black in light, white in dark) -- same 0.7 opacity in
+  // both, see grilling session 2026-11-10.
+  BORDER_STRONG: "rgba(0, 0, 0, 0.7)",
   SCRIM: "#000000",
   // Exact category colors provided 2026-10-28 (replacing the earlier
   // by-eye-estimated mockup colors). All four _TEXT entries are now the same
@@ -59,7 +62,8 @@ const DARK_PALETTE: ApplicationColorPaletteType = {
   SURFACE_RAISED: "#2C2C2E",
   SURFACE_RAISED_ALT: "#3A3A3C",
   ACCENT: "#0A84FF",
-  BORDER_SUBTLE: "rgba(255, 255, 255, 0.12)",
+  BORDER_SUBTLE: "rgba(255, 255, 255, 0.05)",
+  BORDER_STRONG: "rgba(255, 255, 255, 0.7)",
 };
 
 function resolvePalette(resolvedTheme: ResolvedThemeType): ApplicationColorPaletteType {

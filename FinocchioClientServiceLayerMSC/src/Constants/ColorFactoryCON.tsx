@@ -45,6 +45,10 @@ export default class ColorFactoryCON {
     return useApplicationBaselineColorStateStore.getState().colors.SCRIM;
   }
 
+  public static get BORDER_STRONG(): string {
+    return useApplicationBaselineColorStateStore.getState().colors.BORDER_STRONG;
+  }
+
   public static get CARD_GAMES(): string {
     return useApplicationBaselineColorStateStore.getState().colors.CARD_GAMES;
   }
