@@ -11,6 +11,7 @@ import Animated, {
   type SharedValue,
 } from "react-native-reanimated";
 
+import ColorFactoryCON from "@/Constants/ColorFactoryCON";
 import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
 import DashboardScreenCON from "@/Features/DashboardScreen/Constants/DashboardScreenCON";
 import type { DashboardCategoryModel, DashboardMeasuredRectModel } from "@/Features/DashboardScreen/Models/DashboardScreenModel";
@@ -148,8 +149,8 @@ export default function DashboardScreenCategoryCardStaticComponent({
           height: DashboardScreenCON.CATEGORY_CARD_HEIGHT,
           zIndex: index,
           borderRadius: 24,
-          borderWidth: 1,
-          borderColor: DashboardScreenCON.CATEGORY_CARD_BORDER_COLOR,
+          borderWidth: 1.5,
+          borderColor: ColorFactoryCON.BORDER_STRONG,
           backgroundColor: style.backgroundColor,
           padding: EdgeInsetsCON.LG,
           ...DashboardScreenCON.CATEGORY_CARD_SHADOW_STYLE,

@@ -16,11 +16,6 @@ export default class DashboardScreenCON {
   // intrinsic/content-driven sizing the way normal flow layout could.
   public static readonly CATEGORY_CARD_HEIGHT: number = 275;
 
-  // Subtle depth treatment so stacked/pinned cards read as physically on top
-  // of each other. Dark, low-opacity border so it stays equally subtle across
-  // every category color.
-  public static readonly CATEGORY_CARD_BORDER_COLOR: string = "rgba(0, 0, 0, 0.08)";
-
   // Grouped since shadow is inherently a set of properties applied together;
   // elevation included alongside the iOS shadow props for Android compatibility.
   public static readonly CATEGORY_CARD_SHADOW_STYLE = {

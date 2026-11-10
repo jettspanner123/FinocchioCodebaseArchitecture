@@ -53,8 +53,8 @@ export default function CreateCategoryScreenCardPreviewStaticComponent({
       style={{
         height: DashboardScreenCON.CATEGORY_CARD_HEIGHT,
         borderRadius: 24,
-        borderWidth: 1,
-        borderColor: DashboardScreenCON.CATEGORY_CARD_BORDER_COLOR,
+        borderWidth: 1.5,
+        borderColor: ColorFactoryCON.BORDER_STRONG,
         backgroundColor,
         padding: EdgeInsetsCON.LG,
         ...DashboardScreenCON.CATEGORY_CARD_SHADOW_STYLE,
