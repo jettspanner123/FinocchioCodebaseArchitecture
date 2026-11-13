@@ -64,18 +64,16 @@ export default class DashboardScreenCON {
   // same color instead of a plain white circle.
   public static readonly CATEGORY_ICON_BACKGROUND_DARKEN_AMOUNT: number = 0.12;
 
-  // Thresholds matching CONTEXT.md's 80% and 100% budget alert specifications
-  public static readonly BUDGET_ALERT_WARNING_THRESHOLD: number = 0.8;
-  public static readonly BUDGET_ALERT_DANGER_THRESHOLD: number = 1.0;
-
-  // Progress bar colors
+  // Progress bar colors -- always PROGRESS_BAR_DEFAULT_COLOR for the fill,
+  // regardless of spend ratio (amber/red conditional coloring explicitly
+  // removed, see grilling session 2026-11-11; the ratio-based thresholds and
+  // warning/danger fill colors that drove it are gone too, now dead).
   public static readonly PROGRESS_BAR_DEFAULT_COLOR: string = "#1C1C28";
-  public static readonly PROGRESS_BAR_WARNING_COLOR: string = "#F59E0B";
-  public static readonly PROGRESS_BAR_DANGER_COLOR: string = "#EF4444";
   // For the "over cap" TEXT only, not the bar fill (see
-  // DASHBOARD_IMPROVEMENTS_PRD.md #1) -- PROGRESS_BAR_DANGER_COLOR scored as
-  // low as 2.39:1 as text against some category backgrounds; this darker red
-  // (Tailwind red-800) verified at 5.28:1+ against all 5 current categories.
+  // DASHBOARD_IMPROVEMENTS_PRD.md #1) -- the old PROGRESS_BAR_DANGER_COLOR
+  // (#EF4444, since removed) scored as low as 2.39:1 as text against some
+  // category backgrounds; this darker red (Tailwind red-800) verified at
+  // 5.28:1+ against all 5 current categories.
   public static readonly PROGRESS_BAR_DANGER_TEXT_COLOR: string = "#991B1B";
   public static readonly PROGRESS_BAR_TRACK_COLOR: string = "rgba(28, 28, 40, 0.12)";
 

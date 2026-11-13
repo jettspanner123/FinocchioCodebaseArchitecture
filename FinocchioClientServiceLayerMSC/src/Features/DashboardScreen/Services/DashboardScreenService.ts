@@ -54,18 +54,11 @@ export default class DashboardScreenService {
     };
   }
 
-  public resolveProgressBarColor(spentAmount: number, budgetCap: number): string {
-    if (budgetCap <= 0) {
-      return DashboardScreenCON.PROGRESS_BAR_DEFAULT_COLOR;
-    }
-
-    const ratio = spentAmount / budgetCap;
-    if (ratio >= DashboardScreenCON.BUDGET_ALERT_DANGER_THRESHOLD) {
-      return DashboardScreenCON.PROGRESS_BAR_DANGER_COLOR;
-    }
-    if (ratio >= DashboardScreenCON.BUDGET_ALERT_WARNING_THRESHOLD) {
-      return DashboardScreenCON.PROGRESS_BAR_WARNING_COLOR;
-    }
+  // Always the same dark fill regardless of spend ratio -- the amber
+  // (warning) / red (danger) conditional coloring was explicitly removed,
+  // see grilling session 2026-11-11. The "X over cap" text's own red
+  // (PROGRESS_BAR_DANGER_TEXT_COLOR) is unrelated and untouched.
+  public resolveProgressBarColor(_spentAmount: number, _budgetCap: number): string {
     return DashboardScreenCON.PROGRESS_BAR_DEFAULT_COLOR;
   }
 
