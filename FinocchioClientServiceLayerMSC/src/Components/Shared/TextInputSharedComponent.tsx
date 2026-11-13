@@ -21,7 +21,6 @@ interface TextInputSharedComponentProps extends TextInputProps {
   leftAdornment?: React.ReactNode;
 }
 
-const UNFOCUSED_BORDER_COLOR = "rgba(0, 0, 0, 0.15)";
 const UNFOCUSED_BORDER_WIDTH = 1;
 const FOCUSED_BORDER_WIDTH = 1.5;
 const FOCUS_TRANSITION_DURATION = 150;
@@ -31,8 +30,6 @@ const FOCUS_TRANSITION_DURATION = 150;
 // background, release pops the border width past its current target (whatever
 // the focus animation above has it heading toward) then settles, mirroring
 // useCardPressAnimationHook's exact choreography on different properties.
-const UNPRESSED_BACKGROUND_COLOR = "#FFFFFF";
-const PRESSED_BACKGROUND_COLOR = "#F5F5F5";
 const PRESS_FLASH_IN_DURATION = 80;
 const PRESS_FLASH_OUT_DURATION = 150;
 const RELEASE_POP_BORDER_WIDTH_DELTA = 0.75;
@@ -82,6 +79,9 @@ export default function TextInputSharedComponent({
   // identical comment on why a CON/store value must never be read directly
   // inside a Reanimated worklet.
   const focusedBorderColor = ColorFactoryCON.INK;
+  const unfocusedBorderColor = ColorFactoryCON.BORDER_DEFAULT;
+  const unpressedBackgroundColor = ColorFactoryCON.SURFACE;
+  const pressedBackgroundColor = ColorFactoryCON.SURFACE_RAISED_ALT;
 
   const focusProgress = useSharedValue(0);
   const handleFocus: TextInputProps["onFocus"] = (event) => {
@@ -110,10 +110,10 @@ export default function TextInputSharedComponent({
   };
 
   const focusAnimatedStyle = useAnimatedStyle(() => ({
-    borderColor: interpolateColor(focusProgress.value, [0, 1], [UNFOCUSED_BORDER_COLOR, focusedBorderColor]),
+    borderColor: interpolateColor(focusProgress.value, [0, 1], [unfocusedBorderColor, focusedBorderColor]),
     borderWidth:
       interpolate(focusProgress.value, [0, 1], [UNFOCUSED_BORDER_WIDTH, FOCUSED_BORDER_WIDTH]) + releasePopDelta.value,
-    backgroundColor: interpolateColor(pressFlashProgress.value, [0, 1], [UNPRESSED_BACKGROUND_COLOR, PRESSED_BACKGROUND_COLOR]),
+    backgroundColor: interpolateColor(pressFlashProgress.value, [0, 1], [unpressedBackgroundColor, pressedBackgroundColor]),
   }));
 
   return (

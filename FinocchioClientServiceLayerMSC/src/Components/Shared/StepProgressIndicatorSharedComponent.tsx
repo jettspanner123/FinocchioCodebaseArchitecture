@@ -16,7 +16,6 @@ interface StepProgressIndicatorSharedComponentProps {
 
 const DOT_SIZE = 8;
 const PILL_WIDTH = 24;
-const UNSELECTED_DOT_COLOR = "rgba(0, 0, 0, 0.15)";
 const SHAPE_TRANSITION_DURATION = 250;
 const COLOR_TRANSITION_DURATION = 250;
 
@@ -35,6 +34,12 @@ interface StepProgressDotProps {
 // Hooks is fine with regardless of how many sibling instances exist.
 function StepProgressDot({ isCurrent, isCompleted, activeColor }: StepProgressDotProps): React.JSX.Element {
   const isActive = isCompleted || isCurrent;
+  // Resolved fresh per-render, not a module-level constant -- a black-tinted
+  // color (the old hardcoded value) is mathematically indistinguishable from
+  // a pure-black dark-mode page background at any opacity; BORDER_DEFAULT
+  // already flips to white-tinted in dark mode, see grilling session
+  // 2026-11-11.
+  const unselectedDotColor = ColorFactoryCON.BORDER_DEFAULT;
   const shapeProgress = useSharedValue(isCurrent ? 1 : 0);
   const colorProgress = useSharedValue(isActive ? 1 : 0);
 
@@ -47,7 +52,7 @@ function StepProgressDot({ isCurrent, isCompleted, activeColor }: StepProgressDo
 
   const animatedStyle = useAnimatedStyle(() => ({
     width: interpolate(shapeProgress.value, [0, 1], [DOT_SIZE, PILL_WIDTH]),
-    backgroundColor: interpolateColor(colorProgress.value, [0, 1], [UNSELECTED_DOT_COLOR, activeColor]),
+    backgroundColor: interpolateColor(colorProgress.value, [0, 1], [unselectedDotColor, activeColor]),
   }));
 
   return <Animated.View style={[{ height: DOT_SIZE, borderRadius: DOT_SIZE / 2 }, animatedStyle]} />;

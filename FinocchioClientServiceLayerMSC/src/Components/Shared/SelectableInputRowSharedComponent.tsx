@@ -9,14 +9,13 @@ import ApplicationPhysicalFeedback from "@/Services/ApplicationPhysicalFeedback"
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-// Same literal values as TextInputSharedComponent's press-flash/pop effect --
-// kept as a separate copy, not a shared hook, since this row has no focus
-// state to compose the pop with (TextInputSharedComponent layers its pop on
-// top of a focus-driven width; this row's resting width never changes).
-const UNFOCUSED_BORDER_COLOR = "rgba(0, 0, 0, 0.15)";
+// Same timing/duration values as TextInputSharedComponent's press-flash/pop
+// effect (colors are resolved fresh per-render inside the component body
+// instead, see below, since they're theme-aware tokens) -- kept as a separate
+// copy, not a shared hook, since this row has no focus state to compose the
+// pop with (TextInputSharedComponent layers its pop on top of a focus-driven
+// width; this row's resting width never changes).
 const UNFOCUSED_BORDER_WIDTH = 1;
-const UNPRESSED_BACKGROUND_COLOR = "#FFFFFF";
-const PRESSED_BACKGROUND_COLOR = "#F5F5F5";
 const PRESS_FLASH_IN_DURATION = 80;
 const PRESS_FLASH_OUT_DURATION = 150;
 const RELEASE_POP_BORDER_WIDTH_DELTA = 0.75;
@@ -47,6 +46,10 @@ export default function SelectableInputRowSharedComponent({
   onPress,
   accessibilityLabel,
 }: SelectableInputRowSharedComponentProps): React.JSX.Element {
+  const unfocusedBorderColor = ColorFactoryCON.BORDER_DEFAULT;
+  const unpressedBackgroundColor = ColorFactoryCON.SURFACE;
+  const pressedBackgroundColor = ColorFactoryCON.SURFACE_RAISED_ALT;
+
   const pressFlashProgress = useSharedValue(0);
   const releasePopDelta = useSharedValue(0);
 
@@ -64,7 +67,7 @@ export default function SelectableInputRowSharedComponent({
 
   const animatedStyle = useAnimatedStyle(() => ({
     borderWidth: UNFOCUSED_BORDER_WIDTH + releasePopDelta.value,
-    backgroundColor: interpolateColor(pressFlashProgress.value, [0, 1], [UNPRESSED_BACKGROUND_COLOR, PRESSED_BACKGROUND_COLOR]),
+    backgroundColor: interpolateColor(pressFlashProgress.value, [0, 1], [unpressedBackgroundColor, pressedBackgroundColor]),
   }));
 
   return (
@@ -81,7 +84,7 @@ export default function SelectableInputRowSharedComponent({
           justifyContent: "space-between",
           height: 56,
           borderRadius: 9999,
-          borderColor: isInvalid ? invalidColor : UNFOCUSED_BORDER_COLOR,
+          borderColor: isInvalid ? invalidColor : unfocusedBorderColor,
           paddingHorizontal: EdgeInsetsCON.LG,
         },
         animatedStyle,

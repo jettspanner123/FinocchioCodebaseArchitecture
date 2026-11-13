@@ -23,6 +23,11 @@ export interface ApplicationColorPaletteType {
   OVERLAY: string;
   ACCENT: string;
   BORDER_SUBTLE: string;
+  // Between BORDER_SUBTLE and BORDER_STRONG -- for input boxes specifically,
+  // which wanted a touch more definition than BORDER_SUBTLE gives buttons/
+  // sheets, without going as heavy as BORDER_STRONG's category-card weight,
+  // see grilling session 2026-11-11.
+  BORDER_DEFAULT: string;
   // A more visible border for elements that need to read as clearly
   // differentiated from their background (category cards) -- deliberately
   // its own token, not a bumped BORDER_SUBTLE, since BORDER_SUBTLE stays
@@ -33,6 +38,12 @@ export interface ApplicationColorPaletteType {
   // same precedent as CARD_GAMES etc. being centralized despite not varying
   // by theme, see grilling session 2026-11-10.
   SCRIM: string;
+  // Neutral, low-contrast chip/circle background (icon-picker unselected
+  // cells, icon-circles, avatar circles) -- light stays the original subtle
+  // rgba(0,0,0,0.06); dark needs a meaningfully more opaque value since that
+  // same subtle tint is nearly invisible against an already-dark background,
+  // see grilling session 2026-11-11.
+  CHIP_BACKGROUND: string;
   CARD_GAMES: string;
   CARD_GAMES_TEXT: string;
   CARD_PRODUCTS: string;

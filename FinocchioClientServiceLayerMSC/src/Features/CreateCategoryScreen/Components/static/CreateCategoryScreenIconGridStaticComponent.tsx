@@ -48,7 +48,7 @@ export default function CreateCategoryScreenIconGridStaticComponent({
               borderRadius: 9999,
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: isSelected ? CreateCategoryScreenCON.CREATE_BUTTON_GREEN_DARK : "rgba(0, 0, 0, 0.06)",
+              backgroundColor: isSelected ? CreateCategoryScreenCON.CREATE_BUTTON_GREEN_DARK : ColorFactoryCON.CHIP_BACKGROUND,
             }}
           >
             <Ionicons name={iconName} size={24} color={isSelected ? "#FFFFFF" : ColorFactoryCON.INK} />

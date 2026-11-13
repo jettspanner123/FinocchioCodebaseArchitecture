@@ -41,12 +41,20 @@ export default class ColorFactoryCON {
     return useApplicationBaselineColorStateStore.getState().colors.BORDER_SUBTLE;
   }
 
+  public static get BORDER_DEFAULT(): string {
+    return useApplicationBaselineColorStateStore.getState().colors.BORDER_DEFAULT;
+  }
+
   public static get SCRIM(): string {
     return useApplicationBaselineColorStateStore.getState().colors.SCRIM;
   }
 
   public static get BORDER_STRONG(): string {
     return useApplicationBaselineColorStateStore.getState().colors.BORDER_STRONG;
+  }
+
+  public static get CHIP_BACKGROUND(): string {
+    return useApplicationBaselineColorStateStore.getState().colors.CHIP_BACKGROUND;
   }
 
   public static get CARD_GAMES(): string {
