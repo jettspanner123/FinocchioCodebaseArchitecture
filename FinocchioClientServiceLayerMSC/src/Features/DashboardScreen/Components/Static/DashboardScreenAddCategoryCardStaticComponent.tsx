@@ -11,8 +11,10 @@ import Animated, {
     type SharedValue,
 } from "react-native-reanimated";
 
+import ColorFactoryCON from "@/Constants/ColorFactoryCON";
 import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
 import DashboardScreenCON from "@/Features/DashboardScreen/Constants/DashboardScreenCON";
+import DashboardScreenService from "@/Features/DashboardScreen/Services/DashboardScreenService";
 import ApplicationPhysicalFeedback from "@/Services/ApplicationPhysicalFeedback";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -39,8 +41,18 @@ export default function DashboardScreenAddCategoryCardStaticComponent({
     // DashboardScreenCON property must never be read directly inside a
     // useAnimatedStyle callback.
     const slideAwayEndProgress = DashboardScreenCON.EXPAND_SLIDE_AWAY_END_PROGRESS;
-    const restingBackgroundColor = DashboardScreenCON.ADD_CARD_BACKGROUND_COLOR;
-    const pressedBackgroundColor = DashboardScreenCON.ADD_CARD_PRESSED_BACKGROUND_COLOR;
+    // Slightly darker than SURFACE_RAISED itself (not SURFACE_RAISED reused
+    // as-is), see grilling session 2026-11-11.
+    const restingBackgroundColor = DashboardScreenService.current.darkenHexColor(
+        ColorFactoryCON.SURFACE_RAISED,
+        DashboardScreenCON.ADD_CARD_BACKGROUND_DARKEN_AMOUNT,
+    );
+    // SURFACE_RAISED_ALT happens to be darker than SURFACE_RAISED in light
+    // mode and lighter than it in dark mode -- exactly preserves this card's
+    // original "press lightens it" dark-mode feel while giving light mode the
+    // more conventional "press darkens it" direction, see grilling session
+    // 2026-11-11.
+    const pressedBackgroundColor = ColorFactoryCON.SURFACE_RAISED_ALT;
     const pressInDuration = DashboardScreenCON.ADD_CARD_PRESS_IN_DURATION;
     const pressOutDuration = DashboardScreenCON.ADD_CARD_PRESS_OUT_DURATION;
 
@@ -118,7 +130,7 @@ export default function DashboardScreenAddCategoryCardStaticComponent({
                         flex: 1,
                         borderRadius: 50,
                         borderWidth: 1,
-                        borderColor: "rgba(255, 255, 255, 0.12)",
+                        borderColor: ColorFactoryCON.BORDER_SUBTLE,
                         padding: EdgeInsetsCON.LG,
                         alignItems: "center",
                         justifyContent: "center",
@@ -130,16 +142,16 @@ export default function DashboardScreenAddCategoryCardStaticComponent({
                 <View
                     className="w-16 h-16 rounded-full items-center justify-center mb-4"
                     style={{
-                        backgroundColor: "rgba(255, 255, 255, 0.15)",
+                        backgroundColor: ColorFactoryCON.SURFACE_RAISED_ALT,
                         marginTop: EdgeInsetsCON.XXL,
                     }}
                 >
-                    <Ionicons name="add" size={32} color="#FFFFFF"/>
+                    <Ionicons name="add" size={32} color={ColorFactoryCON.INK}/>
                 </View>
 
                 <Text
                     style={{
-                        color: "#FFFFFF",
+                        color: ColorFactoryCON.INK,
                         fontSize: 30,
                         fontWeight: "700",
                         textAlign: "center",
@@ -151,7 +163,7 @@ export default function DashboardScreenAddCategoryCardStaticComponent({
 
                 <Text
                     style={{
-                        color: "#FFFFFF",
+                        color: ColorFactoryCON.INK,
                         opacity: 0.7,
                         fontSize: 14,
                         textAlign: "center",

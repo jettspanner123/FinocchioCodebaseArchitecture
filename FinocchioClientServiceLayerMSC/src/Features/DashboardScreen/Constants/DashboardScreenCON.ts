@@ -80,10 +80,12 @@ export default class DashboardScreenCON {
   // Add Category Card
   public static readonly ADD_CARD_TITLE: string = "Create Category";
   public static readonly ADD_CARD_SUBTITLE: string = "Set up a personal or shared budget";
-  public static readonly ADD_CARD_BACKGROUND_COLOR: string = "#1C1C28";
-  public static readonly ADD_CARD_PRESSED_BACKGROUND_COLOR: string = "#2C2C3E";
   public static readonly ADD_CARD_PRESS_IN_DURATION: number = 100;
   public static readonly ADD_CARD_PRESS_OUT_DURATION: number = 200;
+  // How much darker (as a fraction) this card's resting background is than
+  // ColorFactoryCON.SURFACE_RAISED itself -- same darkenHexColor technique as
+  // CATEGORY_ICON_BACKGROUND_DARKEN_AMOUNT, see grilling session 2026-11-11.
+  public static readonly ADD_CARD_BACKGROUND_DARKEN_AMOUNT: number = 0.06;
   // Deliberately its own constant, not CATEGORY_CARD_HEIGHT -- this card isn't
   // part of the pinned stack sizing math, so growing it doesn't inflate every
   // category card too.
