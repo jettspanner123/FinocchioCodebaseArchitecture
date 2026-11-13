@@ -226,7 +226,7 @@ export default function ConfirmationDialogSharedComponent({
         <BlurView
           intensity={20}
           tint="dark"
-          experimentalBlurMethod="dimezisBlurView"
+          blurMethod="dimezisBlurView"
           style={StyleSheet.absoluteFill}
         />
         <View
