@@ -108,6 +108,23 @@ export default class DashboardScreenCON {
   public static readonly EXPAND_CONTENT_FADE_END_PROGRESS: number = 0.25;
   public static readonly EXPAND_GROWTH_START_PROGRESS: number = 0.3;
 
+  // Edge-swipe-to-collapse gesture -- mirrors the native swipe-from-the-left-
+  // edge-to-go-back gesture's exact trigger zone, but drives this screen's
+  // own collapse animation (expandProgress) instead of a screen transition.
+  // Alongside, not instead of, tap-to-reverse -- see apple-motion grilling
+  // session 2026-11-13.
+  public static readonly EXPAND_EDGE_SWIPE_ZONE_WIDTH: number = 20;
+  // expandProgress is a unitless 0->1 value, not pixels -- these are the
+  // progress-space equivalents of BottomSheetSharedComponent's rubberband/
+  // momentum-projection constants. RUBBERBAND_CONSTANT and the deceleration
+  // rate are dimensionless shape parameters, so the same values carry the
+  // same "feel" regardless of scale; RUBBERBAND_DIMENSION is rescaled from
+  // that component's 120px into an equivalent fraction of the drag range.
+  public static readonly EXPAND_EDGE_SWIPE_RUBBERBAND_DIMENSION: number = 0.15;
+  public static readonly EXPAND_EDGE_SWIPE_RUBBERBAND_CONSTANT: number = 0.55;
+  public static readonly EXPAND_EDGE_SWIPE_PROJECTION_DECELERATION_RATE: number = 0.998;
+  public static readonly EXPAND_EDGE_SWIPE_COMMIT_THRESHOLD: number = 0.5;
+
   // Profile & Settings Bottom Sheets
   public static readonly PROFILE_SHEET_TITLE: string = "Profile";
   public static readonly SETTINGS_SHEET_TITLE: string = "Settings";

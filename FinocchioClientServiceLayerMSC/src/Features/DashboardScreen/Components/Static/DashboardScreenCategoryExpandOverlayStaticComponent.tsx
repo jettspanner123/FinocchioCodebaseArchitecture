@@ -53,6 +53,11 @@ export default function DashboardScreenCategoryExpandOverlayStaticComponent({
       style={[
         {
           position: "absolute",
+          // Mounted/unmounted exactly in sync with whether it's needed (see
+          // DashboardScreenController's isOverlayGrown) rather than held at
+          // a constant zIndex for the whole sequence -- this is simpler and
+          // more robust than trying to get a live zIndex change to re-sort
+          // correctly against siblings on an already-mounted native view.
           zIndex: 999,
           backgroundColor: category.backgroundColor,
           overflow: "hidden",
