@@ -17,6 +17,7 @@ import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
 import DashboardScreenCON from "@/Features/DashboardScreen/Constants/DashboardScreenCON";
 import type { DashboardCategoryModel, DashboardMeasuredRectModel } from "@/Features/DashboardScreen/Models/DashboardScreenModel";
 import DashboardScreenService from "@/Features/DashboardScreen/Services/DashboardScreenService";
+import useCardPressAnimationHook from "@/Hooks/useCardPressAnimationHook";
 
 interface DashboardScreenCategoryCardStaticComponentProps {
   category: DashboardCategoryModel;
@@ -70,8 +71,13 @@ export default function DashboardScreenCategoryCardStaticComponent({
   // ES6 class (DashboardScreenCON) the way it does a plain number, which
   // silently broke every one of this screen's new slide-away/fade worklets
   // until this was fixed (confirmed via isolation testing on-device).
-  const slideAwayEndProgress = DashboardScreenCON.EXPAND_SLIDE_AWAY_END_PROGRESS;
   const contentFadeEndProgress = DashboardScreenCON.EXPAND_CONTENT_FADE_END_PROGRESS;
+
+  // skipReleasePop: release immediately hands off into the slide-away/grow
+  // sequence (via handlePress below), not a resting moment -- an animated
+  // pop-then-settle there would read as a second, competing animation on
+  // the same element. See grilling session 2026-11-14.
+  const pressAnimation = useCardPressAnimationHook({ skipReleasePop: true });
 
   const style = DashboardScreenService.current.resolveCategoryStyle(category);
   const progress = DashboardScreenService.current.calculateProgress(category.spentAmount, category.budgetCap);
@@ -135,12 +141,17 @@ export default function DashboardScreenCategoryCardStaticComponent({
       ? 1
       : interpolate(scrollY.value, scaleInputRange, scaleOutputRange, Extrapolation.CLAMP);
 
-    const slideAwayTranslateY = isSelected
-      ? 0
-      : interpolate(cardsReturnProgress.value, [0, slideAwayEndProgress], [0, slideAwayDistance], Extrapolation.CLAMP);
+    const slideAwayTranslateY = isSelected ? 0 : cardsReturnProgress.value * slideAwayDistance;
 
     return {
-      transform: [{ translateY: pinnedTranslateY + slideAwayTranslateY }, { scale: recedeScale }],
+      // Combined into ONE transform array, not a second style object -- RN
+      // doesn't merge `transform` across separate style objects in a style
+      // array, so a second useAnimatedStyle here would silently replace,
+      // not add to, this one (see this file's own class-level comment).
+      transform: [
+        { translateY: pinnedTranslateY + slideAwayTranslateY },
+        { scale: recedeScale * pressAnimation.scale.value },
+      ],
     };
   });
 
@@ -174,7 +185,12 @@ export default function DashboardScreenCategoryCardStaticComponent({
         cardAnimatedStyle,
       ]}
     >
-      <Pressable onPress={handlePress} style={{ flex: 1 }}>
+      <Pressable
+        onPress={handlePress}
+        onPressIn={pressAnimation.onPressIn}
+        onPressOut={pressAnimation.onPressOut}
+        style={{ flex: 1 }}
+      >
         <Animated.View style={[{ flex: 1 }, contentAnimatedStyle]}>
           {/* Top Section: Category Icon, Name, and Shared/Personal badge with Member avatars */}
           <View

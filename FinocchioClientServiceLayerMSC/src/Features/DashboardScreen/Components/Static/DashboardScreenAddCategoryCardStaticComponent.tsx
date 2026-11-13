@@ -2,8 +2,6 @@ import {Ionicons} from "@expo/vector-icons";
 import React from "react";
 import {Pressable, Text, View, useWindowDimensions} from "react-native";
 import Animated, {
-    Extrapolation,
-    interpolate,
     interpolateColor,
     useAnimatedStyle,
     useSharedValue,
@@ -36,11 +34,6 @@ export default function DashboardScreenAddCategoryCardStaticComponent({
                                                                       }: DashboardScreenAddCategoryCardStaticComponentProps): React.JSX.Element {
     const {height: screenHeight} = useWindowDimensions();
     const slideAwayDistance = screenHeight + DashboardScreenCON.ADD_CARD_HEIGHT + EdgeInsetsCON.XXL;
-    // Resolved to a plain number here, outside the worklet below -- see
-    // DashboardScreenCategoryCardStaticComponent's comment on why a
-    // DashboardScreenCON property must never be read directly inside a
-    // useAnimatedStyle callback.
-    const slideAwayEndProgress = DashboardScreenCON.EXPAND_SLIDE_AWAY_END_PROGRESS;
     // Slightly darker than SURFACE_RAISED itself (not SURFACE_RAISED reused
     // as-is), see grilling session 2026-11-11.
     const restingBackgroundColor = DashboardScreenService.current.darkenHexColor(
@@ -83,18 +76,9 @@ export default function DashboardScreenAddCategoryCardStaticComponent({
     // slide-away offset is additive on top of that same translateY -- see
     // DashboardScreenCategoryCardStaticComponent for why these must be combined
     // in one worklet rather than two separate style objects.
-    const animatedStyle = useAnimatedStyle(() => {
-        const slideAwayTranslateY = interpolate(
-            expandProgress.value,
-            [0, slideAwayEndProgress],
-            [0, slideAwayDistance],
-            Extrapolation.CLAMP,
-        );
-
-        return {
-            transform: [{translateY: scrollY.value + slideAwayTranslateY}],
-        };
-    });
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{translateY: scrollY.value + expandProgress.value * slideAwayDistance}],
+    }));
 
     const cardBackgroundAnimatedStyle = useAnimatedStyle(() => ({
         backgroundColor: interpolateColor(
