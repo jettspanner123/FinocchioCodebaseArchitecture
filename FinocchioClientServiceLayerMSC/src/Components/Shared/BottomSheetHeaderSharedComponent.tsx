@@ -54,6 +54,7 @@ export default function BottomSheetHeaderSharedComponent({
             onPress={onLeadingPress}
             height={ACTION_BUTTON_SIZE}
             accessibilityLabel={leadingAccessibilityLabel}
+            animated
           />
         ) : null}
       </View>
