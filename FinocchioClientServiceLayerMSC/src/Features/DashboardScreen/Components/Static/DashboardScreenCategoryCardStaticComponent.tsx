@@ -153,7 +153,7 @@ export default function DashboardScreenCategoryCardStaticComponent({
           borderColor: ColorFactoryCON.BORDER_STRONG,
           backgroundColor: style.backgroundColor,
           padding: EdgeInsetsCON.LG,
-          ...DashboardScreenCON.CATEGORY_CARD_SHADOW_STYLE,
+          ...DashboardScreenCON.CATEGORY_CARD_BOX_SHADOW_STYLE,
         },
         cardAnimatedStyle,
       ]}

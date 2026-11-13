@@ -18,12 +18,29 @@ export default class DashboardScreenCON {
 
   // Grouped since shadow is inherently a set of properties applied together;
   // elevation included alongside the iOS shadow props for Android compatibility.
+  // Also used by DashboardScreenAddCategoryCardStaticComponent (not a real
+  // category card) -- kept as-is for that card; CATEGORY_CARD_BOX_SHADOW_STYLE
+  // below is the real category cards' own shadow, deliberately separate so
+  // changing one doesn't affect the other.
   public static readonly CATEGORY_CARD_SHADOW_STYLE = {
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 8,
     elevation: 4,
+  } as const;
+
+  // box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px -- explicit spec, see
+  // grilling session 2026-11-10. Used by the real category cards and their
+  // Create Category preview counterpart, not the Add-Category CTA card
+  // (see CATEGORY_CARD_SHADOW_STYLE above). elevation is an approximation --
+  // Android has no exact blur-radius equivalent.
+  public static readonly CATEGORY_CARD_BOX_SHADOW_STYLE = {
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.35,
+    shadowRadius: 15,
+    elevation: 10,
   } as const;
 
   // Screen-space Y position (within the scrollable card area) where a card

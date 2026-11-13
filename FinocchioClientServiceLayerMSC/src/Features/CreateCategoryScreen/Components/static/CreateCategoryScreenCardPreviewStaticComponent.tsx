@@ -57,7 +57,7 @@ export default function CreateCategoryScreenCardPreviewStaticComponent({
         borderColor: ColorFactoryCON.BORDER_STRONG,
         backgroundColor,
         padding: EdgeInsetsCON.LG,
-        ...DashboardScreenCON.CATEGORY_CARD_SHADOW_STYLE,
+        ...DashboardScreenCON.CATEGORY_CARD_BOX_SHADOW_STYLE,
       }}
     >
       {/* Top Section: member avatars only -- no menu icon (nothing for it to
