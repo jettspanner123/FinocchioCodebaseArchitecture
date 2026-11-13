@@ -5,6 +5,7 @@ import Animated, {
   Extrapolation,
   interpolate,
   measure,
+  runOnJS,
   runOnUI,
   useAnimatedRef,
   useAnimatedStyle,
@@ -92,6 +93,15 @@ export default function DashboardScreenCategoryCardStaticComponent({
       return;
     }
 
+    // The rect write and onTap (which mounts the overlay and starts the
+    // forward spring) must happen in this exact order on the UI thread --
+    // calling onTap separately afterward on the JS thread raced the
+    // runOnUI worklet's async dispatch, so the overlay could mount and paint
+    // its first frame from a stale/zeroed expandedCardRect before the real
+    // measurement landed (a visible flash/jump at the start of every tap).
+    // runOnJS(onTap) as the LAST line inside this same worklet guarantees
+    // the measurement is already written before onTap's state update ever
+    // reaches React.
     runOnUI((targetIndex: number) => {
       "worklet";
       const measured = measure(animatedRef);
@@ -104,9 +114,8 @@ export default function DashboardScreenCategoryCardStaticComponent({
         };
       }
       selectedIndex.value = targetIndex;
+      runOnJS(onTap)(targetIndex);
     })(index);
-
-    onTap(index);
   };
 
   const cardAnimatedStyle = useAnimatedStyle(() => {
