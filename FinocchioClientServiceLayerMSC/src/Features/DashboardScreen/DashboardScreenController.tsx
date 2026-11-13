@@ -122,6 +122,18 @@ export default function DashboardScreenController(): React.JSX.Element {
   // state because they drive things Reanimated can't (scrollEnabled, which
   // category's data the overlay renders, conditionally mounting the overlay).
   const expandProgress = useSharedValue(0);
+  // Drives the OTHER cards' + header's slide-away/slide-back -- kept apart
+  // from expandProgress (which still drives the overlay's own grow/shrink
+  // 1:1 with the finger, untouched) because the edge-swipe gesture remaps
+  // this one specifically so cards start returning after just ~20px of
+  // drag, not only once raw expandProgress itself crosses
+  // EXPAND_SLIDE_AWAY_END_PROGRESS (which, starting from progress=1, needs
+  // ~60% of the screen's width of drag -- far too sluggish for something
+  // the user's own finger is directly driving). Tracks expandProgress in
+  // perfect lockstep during every spring-driven phase (tap forward/reverse,
+  // and the settle after a gesture release) -- it only diverges during the
+  // live drag itself. See apple-motion grilling session 2026-11-13.
+  const cardsReturnProgress = useSharedValue(0);
   const selectedIndex = useSharedValue(-1);
   const expandedCardRect = useSharedValue<DashboardMeasuredRectModel>({
     x: 0,
@@ -172,6 +184,10 @@ export default function DashboardScreenController(): React.JSX.Element {
       1,
       DashboardScreenCON.EXPAND_SPRING_CONFIG,
     );
+    cardsReturnProgress.value = withSpring(
+      1,
+      DashboardScreenCON.EXPAND_SPRING_CONFIG,
+    );
   };
 
   // `velocity` defaults to 0 for the existing non-gesture callers (overlay
@@ -188,6 +204,10 @@ export default function DashboardScreenController(): React.JSX.Element {
         }
       },
     );
+    cardsReturnProgress.value = withSpring(0, {
+      ...DashboardScreenCON.EXPAND_SPRING_CONFIG,
+      velocity,
+    });
   };
 
   // Edge-swipe-to-collapse -- mirrors the native swipe-from-the-left-edge-
@@ -214,6 +234,13 @@ export default function DashboardScreenController(): React.JSX.Element {
     DashboardScreenCON.EXPAND_EDGE_SWIPE_PROJECTION_DECELERATION_RATE;
   const edgeSwipeCommitThreshold =
     DashboardScreenCON.EXPAND_EDGE_SWIPE_COMMIT_THRESHOLD;
+  // The top this-many-pixels'-worth of expandProgress (nearest 1, i.e. the
+  // very start of a drag) collapses down to a single output value below --
+  // cardsReturnProgress stays fully "away" through that whole sliver, then
+  // the REST of the drag distance maps across the existing
+  // [0, slideAwayEndProgress] card-return window.
+  const edgeSwipeCardReturnDistanceFraction =
+    DashboardScreenCON.EXPAND_EDGE_SWIPE_CARD_RETURN_DISTANCE_PX / screenWidth;
 
   // A quick tap within the edge zone should still collapse (tap-to-reverse
   // must keep working everywhere, including this strip) -- Gesture.Race
@@ -238,6 +265,13 @@ export default function DashboardScreenController(): React.JSX.Element {
       } else {
         expandProgress.value = next;
       }
+
+      cardsReturnProgress.value = interpolate(
+        expandProgress.value,
+        [0, 1 - edgeSwipeCardReturnDistanceFraction],
+        [0, headerSlideAwayEndProgress],
+        Extrapolation.CLAMP,
+      );
     })
     .onEnd((event) => {
       // Velocity converted from px/s to progress-units/s (divided by the
@@ -250,6 +284,7 @@ export default function DashboardScreenController(): React.JSX.Element {
         runOnJS(handleReverseTap)(progressVelocity);
       } else {
         expandProgress.value = withSpring(1, { ...expandSpringConfig, velocity: progressVelocity });
+        cardsReturnProgress.value = withSpring(1, { ...expandSpringConfig, velocity: progressVelocity });
       }
     });
 
@@ -273,7 +308,7 @@ export default function DashboardScreenController(): React.JSX.Element {
 
   const headerAnimatedStyle = useAnimatedStyle(() => {
     const slideAwayTranslateY = interpolate(
-      expandProgress.value,
+      cardsReturnProgress.value,
       [0, headerSlideAwayEndProgress],
       [0, -headerSlideDistance],
       Extrapolation.CLAMP,
@@ -323,7 +358,7 @@ export default function DashboardScreenController(): React.JSX.Element {
             <DashboardScreenAddCategoryCardStaticComponent
               scrollY={scrollY}
               top={addCardTop}
-              expandProgress={expandProgress}
+              expandProgress={cardsReturnProgress}
               isSequenceActive={isSequenceActive}
               onPress={() => router.push(ApplicationRouteCON.CREATE_CATEGORY_SCREEN_ROUTE)}
             />
@@ -337,6 +372,7 @@ export default function DashboardScreenController(): React.JSX.Element {
               isLastCard={index === categories.length - 1}
               scrollY={scrollY}
               expandProgress={expandProgress}
+              cardsReturnProgress={cardsReturnProgress}
               selectedIndex={selectedIndex}
               expandedCardRect={expandedCardRect}
               isSequenceActive={isSequenceActive}

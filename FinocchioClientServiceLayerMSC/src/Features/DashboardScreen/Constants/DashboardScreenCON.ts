@@ -124,6 +124,14 @@ export default class DashboardScreenCON {
   public static readonly EXPAND_EDGE_SWIPE_RUBBERBAND_CONSTANT: number = 0.55;
   public static readonly EXPAND_EDGE_SWIPE_PROJECTION_DECELERATION_RATE: number = 0.998;
   public static readonly EXPAND_EDGE_SWIPE_COMMIT_THRESHOLD: number = 0.5;
+  // The other cards + header stay put for the first this-many pixels of
+  // drag, then start returning -- waiting for raw expandProgress itself to
+  // cross EXPAND_SLIDE_AWAY_END_PROGRESS (reached only after ~60% of the
+  // full screen width's worth of drag, since the gesture starts at
+  // progress=1) read as far too sluggish for something the user's own
+  // finger is directly driving. See DashboardScreenController's
+  // cardsReturnProgress for the remap this feeds.
+  public static readonly EXPAND_EDGE_SWIPE_CARD_RETURN_DISTANCE_PX: number = 20;
 
   // Profile & Settings Bottom Sheets
   public static readonly PROFILE_SHEET_TITLE: string = "Profile";

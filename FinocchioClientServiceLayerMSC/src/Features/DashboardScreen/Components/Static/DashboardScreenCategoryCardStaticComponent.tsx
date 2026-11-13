@@ -24,6 +24,12 @@ interface DashboardScreenCategoryCardStaticComponentProps {
   isLastCard?: boolean;
   scrollY: SharedValue<number>;
   expandProgress: SharedValue<number>;
+  // Drives THIS card's own slide-away/slide-back only (when not selected) --
+  // decoupled from expandProgress (still used for this card's own content
+  // fade below) so the edge-swipe gesture can make cards return faster than
+  // raw expandProgress would, without affecting the overlay's 1:1 grow/
+  // shrink. See DashboardScreenController's identical comment.
+  cardsReturnProgress: SharedValue<number>;
   selectedIndex: SharedValue<number>;
   expandedCardRect: SharedValue<DashboardMeasuredRectModel>;
   isSequenceActive: boolean;
@@ -49,6 +55,7 @@ export default function DashboardScreenCategoryCardStaticComponent({
   isLastCard = false,
   scrollY,
   expandProgress,
+  cardsReturnProgress,
   selectedIndex,
   expandedCardRect,
   isSequenceActive,
@@ -130,7 +137,7 @@ export default function DashboardScreenCategoryCardStaticComponent({
 
     const slideAwayTranslateY = isSelected
       ? 0
-      : interpolate(expandProgress.value, [0, slideAwayEndProgress], [0, slideAwayDistance], Extrapolation.CLAMP);
+      : interpolate(cardsReturnProgress.value, [0, slideAwayEndProgress], [0, slideAwayDistance], Extrapolation.CLAMP);
 
     return {
       transform: [{ translateY: pinnedTranslateY + slideAwayTranslateY }, { scale: recedeScale }],
