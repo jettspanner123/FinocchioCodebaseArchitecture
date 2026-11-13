@@ -96,15 +96,37 @@ export default class DashboardScreenCON {
   // spring config drives every motion in the sequence (forward and reverse)
   // via a single 0->1 expandProgress shared value -- duration-based so
   // "dampingRatio" directly expresses "slight bounce" (1 = none, <1 = bouncy).
+  //
+  // Physics-based (stiffness/damping/mass), not duration-based, per explicit
+  // request -- grilling session 2026-11-14. damping=57 is the equivalent of
+  // the previous dampingRatio=0.82 "slight bounce" at this stiffness/mass
+  // (Reanimated's physics-spring defaults -- damping 120, mass 4 -- would be
+  // noticeably OVERDAMPED at stiffness 300, i.e. critical damping here is
+  // 2*sqrt(stiffness*mass) = 2*sqrt(300*4) ~= 69.3, well below the default
+  // 120), so the same bounce character carries over rather than turning
+  // sluggish.
   public static readonly EXPAND_SPRING_CONFIG = {
-    duration: 600,
-    dampingRatio: 0.82,
+    stiffness: 300,
+    damping: 57,
+    mass: 4,
   } as const;
 
-  // Per-element windows within expandProgress's 0->1 journey -- see PRD §4
-  // for why these are interpolation windows of one spring rather than
-  // separate timers.
-  public static readonly EXPAND_SLIDE_AWAY_END_PROGRESS: number = 0.4;
+  // Cards/header are driven by their OWN independent cardsReturnProgress
+  // value (0 = home, 1 = fully away), not a windowed slice of expandProgress
+  // -- a slice of the SAME fast spring the overlay uses meant cards covered
+  // their distance in a short, sharp burst no matter how the window was
+  // sized (widening it just moved where they stopped, not how fast the
+  // underlying curve moved), see grilling session 2026-11-14. Lower
+  // stiffness than EXPAND_SPRING_CONFIG -- genuinely slower, not just a
+  // differently-sized slice of the same curve. damping=36 preserves the
+  // same ~0.82 "slight bounce" ratio at this stiffness/mass (critical here
+  // is 2*sqrt(120*4) ~= 43.8).
+  public static readonly EXPAND_CARDS_SPRING_CONFIG = {
+    stiffness: 120,
+    damping: 36,
+    mass: 4,
+  } as const;
+
   public static readonly EXPAND_CONTENT_FADE_END_PROGRESS: number = 0.25;
   public static readonly EXPAND_GROWTH_START_PROGRESS: number = 0.3;
 
@@ -126,12 +148,20 @@ export default class DashboardScreenCON {
   public static readonly EXPAND_EDGE_SWIPE_COMMIT_THRESHOLD: number = 0.5;
   // The other cards + header stay put for the first this-many pixels of
   // drag, then start returning -- waiting for raw expandProgress itself to
-  // cross EXPAND_SLIDE_AWAY_END_PROGRESS (reached only after ~60% of the
-  // full screen width's worth of drag, since the gesture starts at
-  // progress=1) read as far too sluggish for something the user's own
-  // finger is directly driving. See DashboardScreenController's
+  // travel far enough (starting from progress=1, needing most of the
+  // screen's width of drag) read as far too sluggish for something the
+  // user's own finger is directly driving. See DashboardScreenController's
   // cardsReturnProgress for the remap this feeds.
-  public static readonly EXPAND_EDGE_SWIPE_CARD_RETURN_DISTANCE_PX: number = 20;
+  public static readonly EXPAND_EDGE_SWIPE_CARD_RETURN_DISTANCE_PX: number = 80;
+  // How many ADDITIONAL pixels of drag, past the start distance above, it
+  // takes for cards/header to go from "just started" to fully home.
+  // Deliberately a fixed pixel distance, not a fraction of screenWidth --
+  // mapping the return across (screenWidth - 20px) made the numeric
+  // progress value cross its threshold quickly but the actual on-screen
+  // movement stayed imperceptibly slow for most of the drag, since it was
+  // still stretched across nearly the whole remaining width. A fixed,
+  // short distance keeps the return snappy on any device.
+  public static readonly EXPAND_EDGE_SWIPE_CARD_RETURN_DURATION_PX: number = 130;
 
   // Profile & Settings Bottom Sheets
   public static readonly PROFILE_SHEET_TITLE: string = "Profile";

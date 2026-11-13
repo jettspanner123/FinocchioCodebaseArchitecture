@@ -16,6 +16,13 @@ const WOBBLE_RELEASE_POP_DEGREES = 4;
 
 interface UseCardPressAnimationHookOptions {
   wobble?: boolean;
+  // When true, release snaps scale back to 1 instantly instead of the usual
+  // pop-past-1-then-settle -- for a caller whose release immediately hands
+  // off into a DIFFERENT continuous animation (no resting moment to pop
+  // into), where the pop would read as a second, competing animation on the
+  // same element. See DashboardScreenCategoryCardStaticComponent and
+  // grilling session 2026-11-14.
+  skipReleasePop?: boolean;
 }
 
 // Reusable tappable-card feedback: haptic + slight scale-down on press-in,
@@ -26,6 +33,7 @@ interface UseCardPressAnimationHookOptions {
 // playful feel than scale alone (see grilling session 2026-11-11).
 export default function useCardPressAnimationHook(options?: UseCardPressAnimationHookOptions) {
   const wobble = options?.wobble ?? false;
+  const skipReleasePop = options?.skipReleasePop ?? false;
   const scale = useSharedValue(1);
   const rotation = useSharedValue(0);
 
@@ -38,10 +46,19 @@ export default function useCardPressAnimationHook(options?: UseCardPressAnimatio
   };
 
   const onPressOut = (): void => {
-    scale.value = withSequence(
-      withTiming(RELEASE_POP_SCALE, { duration: RELEASE_POP_DURATION }),
-      withTiming(1, { duration: RELEASE_SETTLE_DURATION }),
-    );
+    if (skipReleasePop) {
+      // Instant, not animated -- a caller using this option measures the
+      // element's resting size right around release (see the category
+      // card's handoff to its expand overlay), and an animated settle
+      // might not have finished by then, handing off a momentarily
+      // scaled-down rect.
+      scale.value = 1;
+    } else {
+      scale.value = withSequence(
+        withTiming(RELEASE_POP_SCALE, { duration: RELEASE_POP_DURATION }),
+        withTiming(1, { duration: RELEASE_SETTLE_DURATION }),
+      );
+    }
     if (wobble) {
       rotation.value = withSequence(
         withTiming(WOBBLE_RELEASE_POP_DEGREES, { duration: RELEASE_POP_DURATION }),
@@ -54,7 +71,7 @@ export default function useCardPressAnimationHook(options?: UseCardPressAnimatio
     transform: [{ scale: scale.value }, { rotate: `${rotation.value}deg` }],
   }));
 
-  return { animatedStyle, onPressIn, onPressOut };
+  return { animatedStyle, onPressIn, onPressOut, scale, rotation };
 }
 
 export type CardPressAnimationHookResult = ReturnType<typeof useCardPressAnimationHook>;
