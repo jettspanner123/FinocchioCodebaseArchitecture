@@ -1,6 +1,6 @@
 import {Ionicons} from "@expo/vector-icons";
 import React from "react";
-import {Pressable, Text, View, useWindowDimensions} from "react-native";
+import {Pressable, Text, View} from "react-native";
 import Animated, {
     interpolateColor,
     useAnimatedStyle,
@@ -20,20 +20,14 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 interface DashboardScreenAddCategoryCardStaticComponentProps {
     scrollY: SharedValue<number>;
     top: number;
-    expandProgress: SharedValue<number>;
-    isSequenceActive: boolean;
     onPress?: () => void;
 }
 
 export default function DashboardScreenAddCategoryCardStaticComponent({
                                                                           scrollY,
                                                                           top,
-                                                                          expandProgress,
-                                                                          isSequenceActive,
                                                                           onPress,
                                                                       }: DashboardScreenAddCategoryCardStaticComponentProps): React.JSX.Element {
-    const {height: screenHeight} = useWindowDimensions();
-    const slideAwayDistance = screenHeight + DashboardScreenCON.ADD_CARD_HEIGHT + EdgeInsetsCON.XXL;
     // Slightly darker than SURFACE_RAISED itself (not SURFACE_RAISED reused
     // as-is), see grilling session 2026-11-11.
     const restingBackgroundColor = DashboardScreenService.current.darkenHexColor(
@@ -52,9 +46,6 @@ export default function DashboardScreenAddCategoryCardStaticComponent({
     const pressProgress = useSharedValue(0);
 
     const handlePressIn = (): void => {
-        if (isSequenceActive) {
-            return;
-        }
         void ApplicationPhysicalFeedback.current.haptic.triggerHaptic();
         pressProgress.value = withTiming(1, { duration: pressInDuration });
     };
@@ -64,20 +55,14 @@ export default function DashboardScreenAddCategoryCardStaticComponent({
     };
 
     const handlePress = (): void => {
-        if (isSequenceActive) {
-            return;
-        }
         onPress?.();
     };
 
     // Counter-translate by scrollY keeps this card pinned stationary in screen space
     // at the bottom of the viewport while remaining a native child of the ScrollView
-    // for rock-solid gesture and touch responder handling. Tap-to-expand's
-    // slide-away offset is additive on top of that same translateY -- see
-    // DashboardScreenCategoryCardStaticComponent for why these must be combined
-    // in one worklet rather than two separate style objects.
+    // for rock-solid gesture and touch responder handling.
     const animatedStyle = useAnimatedStyle(() => ({
-        transform: [{translateY: scrollY.value + expandProgress.value * slideAwayDistance}],
+        transform: [{translateY: scrollY.value}],
     }));
 
     const cardBackgroundAnimatedStyle = useAnimatedStyle(() => ({
@@ -106,7 +91,6 @@ export default function DashboardScreenAddCategoryCardStaticComponent({
                 onPress={handlePress}
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
-                disabled={isSequenceActive}
                 accessibilityRole="button"
                 accessibilityLabel={DashboardScreenCON.ADD_CARD_TITLE}
                 style={[

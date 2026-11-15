@@ -29,16 +29,6 @@ export interface DashboardCategoryStyleModel {
   iconBackgroundColor: string;
 }
 
-// Screen-space rect captured via Reanimated's measure() at tap time -- the
-// tap-to-expand overlay animates from this to the fullscreen target rect.
-// See FinocchioAgentDocumentationNMSC/PRD/CATEGORY_CARD_EXPAND_PRD.md.
-export interface DashboardMeasuredRectModel {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
 // Static mock data -- establishes the visual design and category showcase;
 // DashboardScreenService is the only thing that needs to change once real
 // Category/WatermelonDB domain queries exist.

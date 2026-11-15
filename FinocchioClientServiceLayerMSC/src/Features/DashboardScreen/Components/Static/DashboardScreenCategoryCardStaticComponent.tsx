@@ -1,21 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React from "react";
-import { Pressable, Text, View, useWindowDimensions } from "react-native";
-import Animated, {
-  Extrapolation,
-  interpolate,
-  measure,
-  runOnJS,
-  runOnUI,
-  useAnimatedRef,
-  useAnimatedStyle,
-  type SharedValue,
-} from "react-native-reanimated";
+import { Pressable, Text, View } from "react-native";
+import Animated, { Extrapolation, interpolate, useAnimatedStyle, type SharedValue } from "react-native-reanimated";
 
+import ApplicationRouteCON from "@/Constants/ApplicationRouteCON";
 import ColorFactoryCON from "@/Constants/ColorFactoryCON";
 import EdgeInsetsCON from "@/Constants/EdgeInsetsCON";
 import DashboardScreenCON from "@/Features/DashboardScreen/Constants/DashboardScreenCON";
-import type { DashboardCategoryModel, DashboardMeasuredRectModel } from "@/Features/DashboardScreen/Models/DashboardScreenModel";
+import type { DashboardCategoryModel } from "@/Features/DashboardScreen/Models/DashboardScreenModel";
 import DashboardScreenService from "@/Features/DashboardScreen/Services/DashboardScreenService";
 import useCardPressAnimationHook from "@/Hooks/useCardPressAnimationHook";
 
@@ -24,60 +17,15 @@ interface DashboardScreenCategoryCardStaticComponentProps {
   index: number;
   isLastCard?: boolean;
   scrollY: SharedValue<number>;
-  expandProgress: SharedValue<number>;
-  // Drives THIS card's own slide-away/slide-back only (when not selected) --
-  // decoupled from expandProgress (still used for this card's own content
-  // fade below) so the edge-swipe gesture can make cards return faster than
-  // raw expandProgress would, without affecting the overlay's 1:1 grow/
-  // shrink. See DashboardScreenController's identical comment.
-  cardsReturnProgress: SharedValue<number>;
-  selectedIndex: SharedValue<number>;
-  expandedCardRect: SharedValue<DashboardMeasuredRectModel>;
-  isSequenceActive: boolean;
-  onTap: (index: number) => void;
-  onReverseTap: () => void;
 }
 
-// Tap-to-expand (see CATEGORY_CARD_EXPAND_PRD.md): this card never animates
-// itself to fullscreen -- a separate DashboardScreenCategoryExpandOverlayStaticComponent
-// handles the actual growth, starting exactly coincident with this card's
-// measured position/color so the handoff is invisible. This component only
-// does two things for the sequence: (1) if it's NOT the tapped card, slides
-// away like every other non-selected element; (2) if it IS the tapped card,
-// fades its own content out, otherwise staying exactly where the existing
-// pin/recede animation already puts it. Both are additive on top of the
-// existing scroll-stacking transform, in the SAME useAnimatedStyle worklet --
-// RN doesn't merge `transform` arrays across separate style objects, so
-// combining them in a second style object would silently break the
-// pin/recede animation instead of adding to it.
 export default function DashboardScreenCategoryCardStaticComponent({
   category,
   index,
   isLastCard = false,
   scrollY,
-  expandProgress,
-  cardsReturnProgress,
-  selectedIndex,
-  expandedCardRect,
-  isSequenceActive,
-  onTap,
-  onReverseTap,
 }: DashboardScreenCategoryCardStaticComponentProps): React.JSX.Element {
-  const animatedRef = useAnimatedRef<Animated.View>();
-  const { height: screenHeight } = useWindowDimensions();
-  const slideAwayDistance = screenHeight + DashboardScreenCON.CATEGORY_CARD_HEIGHT + EdgeInsetsCON.XXL;
-  // Resolved to plain numbers here, outside the worklets below -- Reanimated's
-  // worklet closure capture doesn't reliably serialize a live reference to an
-  // ES6 class (DashboardScreenCON) the way it does a plain number, which
-  // silently broke every one of this screen's new slide-away/fade worklets
-  // until this was fixed (confirmed via isolation testing on-device).
-  const contentFadeEndProgress = DashboardScreenCON.EXPAND_CONTENT_FADE_END_PROGRESS;
-
-  // skipReleasePop: release immediately hands off into the slide-away/grow
-  // sequence (via handlePress below), not a resting moment -- an animated
-  // pop-then-settle there would read as a second, competing animation on
-  // the same element. See grilling session 2026-11-14.
-  const pressAnimation = useCardPressAnimationHook({ skipReleasePop: true });
+  const pressAnimation = useCardPressAnimationHook();
 
   const style = DashboardScreenService.current.resolveCategoryStyle(category);
   const progress = DashboardScreenService.current.calculateProgress(category.spentAmount, category.budgetCap);
@@ -98,42 +46,13 @@ export default function DashboardScreenCategoryCardStaticComponent({
   }
 
   const handlePress = (): void => {
-    if (selectedIndex.value === index) {
-      onReverseTap();
-      return;
-    }
-    if (isSequenceActive) {
-      return;
-    }
-
-    // The rect write and onTap (which mounts the overlay and starts the
-    // forward spring) must happen in this exact order on the UI thread --
-    // calling onTap separately afterward on the JS thread raced the
-    // runOnUI worklet's async dispatch, so the overlay could mount and paint
-    // its first frame from a stale/zeroed expandedCardRect before the real
-    // measurement landed (a visible flash/jump at the start of every tap).
-    // runOnJS(onTap) as the LAST line inside this same worklet guarantees
-    // the measurement is already written before onTap's state update ever
-    // reaches React.
-    runOnUI((targetIndex: number) => {
-      "worklet";
-      const measured = measure(animatedRef);
-      if (measured) {
-        expandedCardRect.value = {
-          x: measured.pageX,
-          y: measured.pageY,
-          width: measured.width,
-          height: measured.height,
-        };
-      }
-      selectedIndex.value = targetIndex;
-      runOnJS(onTap)(targetIndex);
-    })(index);
+    router.push({
+      pathname: ApplicationRouteCON.CATEGORY_DETAIL_SCREEN_ROUTE,
+      params: { categoryId: category.id },
+    });
   };
 
   const cardAnimatedStyle = useAnimatedStyle(() => {
-    const isSelected = selectedIndex.value === index;
-
     const pinnedTranslateY = Math.max(scrollY.value - pinArrivalScrollY, 0);
     // The final card is the topmost card in the pinned deck -- it never has a
     // card stacked on top of it, so it strictly stays locked at full size (scale 1.0).
@@ -141,32 +60,13 @@ export default function DashboardScreenCategoryCardStaticComponent({
       ? 1
       : interpolate(scrollY.value, scaleInputRange, scaleOutputRange, Extrapolation.CLAMP);
 
-    const slideAwayTranslateY = isSelected ? 0 : cardsReturnProgress.value * slideAwayDistance;
-
     return {
-      // Combined into ONE transform array, not a second style object -- RN
-      // doesn't merge `transform` across separate style objects in a style
-      // array, so a second useAnimatedStyle here would silently replace,
-      // not add to, this one (see this file's own class-level comment).
-      transform: [
-        { translateY: pinnedTranslateY + slideAwayTranslateY },
-        { scale: recedeScale * pressAnimation.scale.value },
-      ],
+      transform: [{ translateY: pinnedTranslateY }, { scale: recedeScale * pressAnimation.scale.value }],
     };
-  });
-
-  const contentAnimatedStyle = useAnimatedStyle(() => {
-    const isSelected = selectedIndex.value === index;
-    const opacity = isSelected
-      ? interpolate(expandProgress.value, [0, contentFadeEndProgress], [1, 0], Extrapolation.CLAMP)
-      : 1;
-
-    return { opacity };
   });
 
   return (
     <Animated.View
-      ref={animatedRef}
       style={[
         {
           position: "absolute",
@@ -191,7 +91,7 @@ export default function DashboardScreenCategoryCardStaticComponent({
         onPressOut={pressAnimation.onPressOut}
         style={{ flex: 1 }}
       >
-        <Animated.View style={[{ flex: 1 }, contentAnimatedStyle]}>
+        <View style={{ flex: 1 }}>
           {/* Top Section: Category Icon, Name, and Shared/Personal badge with Member avatars */}
           <View
             className="flex-row items-center justify-between pb-3"
@@ -297,7 +197,7 @@ export default function DashboardScreenCategoryCardStaticComponent({
             </View>
             <Text style={{ color: style.textColor, opacity: 0.75, fontSize: 13 }}>{category.periodLabel}</Text>
           </View>
-        </Animated.View>
+        </View>
       </Pressable>
     </Animated.View>
   );
