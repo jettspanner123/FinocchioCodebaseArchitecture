@@ -14,6 +14,10 @@ export default class DashboardScreenService {
     return MOCK_DASHBOARD_CATEGORIES;
   }
 
+  public getCategoryById(id: string): DashboardCategoryModel | undefined {
+    return MOCK_DASHBOARD_CATEGORIES.find((category) => category.id === id);
+  }
+
   // Vertical distance between each card's natural (unscrolled) top position.
   // Shared by the controller (total scroll distance) and the card component
   // (its own pin-arrival scroll position) so the two never drift.
